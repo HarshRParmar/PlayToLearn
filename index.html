@@ -7,9 +7,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#FF6B6B">
-    <title>ABC Learning Fun - Kids Educational Game</title>
+    <title>Fun Learning - Kids Educational Game</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
     
     <!-- React and ReactDOM from CDN -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -31,29 +30,6 @@
                 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-        }
-
-        /* Force landscape orientation message for portrait mode */
-        @media (orientation: portrait) {
-            body::before {
-                content: "📱 Please rotate your device to landscape mode ➡️";
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 24px;
-                text-align: center;
-                padding: 40px;
-                z-index: 9999;
-                font-weight: bold;
-                animation: pulse 2s infinite;
-            }
         }
 
         @keyframes pulse {
@@ -84,61 +60,40 @@
             touch-action: none;
         }
 
-        /* Tailwind-like utilities */
-        .flex { display: flex; }
-        .flex-col { flex-direction: column; }
-        .items-center { align-items: center; }
-        .justify-center { justify-content: center; }
-        .justify-between { justify-content: space-between; }
-        .gap-2 { gap: 0.5rem; }
-        .gap-3 { gap: 0.75rem; }
-        .gap-4 { gap: 1rem; }
-        .gap-6 { gap: 1.5rem; }
-        .gap-8 { gap: 2rem; }
-        .gap-12 { gap: 3rem; }
-        .p-2 { padding: 0.5rem; }
-        .p-3 { padding: 0.75rem; }
-        .p-4 { padding: 1rem; }
-        .p-6 { padding: 1.5rem; }
-        .p-8 { padding: 2rem; }
-        .p-12 { padding: 3rem; }
-        .px-4 { padding-left: 1rem; padding-right: 1rem; }
-        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-        .mb-2 { margin-bottom: 0.5rem; }
-        .mb-3 { margin-bottom: 0.75rem; }
-        .mb-4 { margin-bottom: 1rem; }
-        .mb-6 { margin-bottom: 1.5rem; }
-        .mb-8 { margin-bottom: 2rem; }
-        .mb-12 { margin-bottom: 3rem; }
-        .mt-2 { margin-top: 0.5rem; }
-        .mx-auto { margin-left: auto; margin-right: auto; }
-        .w-full { width: 100%; }
-        .h-full { height: 100%; }
-        .h-screen { height: 100vh; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: 700; }
-        .rounded-lg { border-radius: 0.5rem; }
-        .rounded-xl { border-radius: 0.75rem; }
-        .rounded-2xl { border-radius: 1rem; }
-        .rounded-3xl { border-radius: 1.5rem; }
-        .rounded-full { border-radius: 9999px; }
-        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
-        .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-        .transition-all { transition: all 0.3s; }
-        .transition-transform { transition: transform 0.2s; }
-        .hover\:scale-105:hover { transform: scale(1.05); }
-        .hover\:scale-110:hover { transform: scale(1.1); }
-        .scale-110 { transform: scale(1.1); }
-        .relative { position: relative; }
-        .absolute { position: absolute; }
-        .fixed { position: fixed; }
-        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
-        .z-50 { z-index: 50; }
-        .grid { display: grid; }
-        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-        .flex-1 { flex: 1 1 0%; }
-        .overflow-hidden { overflow: hidden; }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .scrollable {
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .drag-line {
+            position: absolute;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .dragging {
+            opacity: 0.7;
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
@@ -147,45 +102,45 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // Lucide React Icons (embedded as SVG components)
-        const Menu = ({ size = 24, className = "" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        // Lucide React Icons
+        const Menu = ({ size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
             </svg>
         );
 
-        const X = ({ size = 24, className = "" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        const X = ({ size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
             </svg>
         );
 
-        const Home = ({ size = 24, className = "" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        const Home = ({ size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
             </svg>
         );
 
-        const CheckCircle = ({ size = 24, className = "" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        const CheckCircle = ({ size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
             </svg>
         );
 
-        const Award = ({ size = 24, className = "" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        const Award = ({ size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
             </svg>
         );
 
-        const Palette = ({ size = 24, className = "" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        const Palette = ({ size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
             </svg>
         );
 
-        const Volume2 = ({ size = 24, className = "" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        const Volume2 = ({ size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
             </svg>
         );
@@ -241,34 +196,44 @@
             const [brushSize, setBrushSize] = useState(15);
             const [isComplete, setIsComplete] = useState(false);
             const [coloredPercentage, setColoredPercentage] = useState(0);
+            const [availableImages, setAvailableImages] = useState([]);
+            const [selectedIndex, setSelectedIndex] = useState(0);
 
             const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#A8E6CF', '#87CEEB', 
                           '#DDA15E', '#BC6C25', '#FF6B9D', '#F4A261', '#E76F51', '#32CD32',
                           '#FFD700', '#9C27B0', '#FFA500', '#C41E3A', '#000000', '#FFFFFF'];
 
             useEffect(() => {
-                selectRandomImage();
+                const shuffled = [...alphabetData].sort(() => Math.random() - 0.5);
+                setAvailableImages(shuffled);
+                selectImage(shuffled[0]);
             }, []);
 
-            const selectRandomImage = () => {
-                const randomItem = alphabetData[Math.floor(Math.random() * alphabetData.length)];
-                setCurrentImage(randomItem);
+            const selectImage = (item) => {
+                setCurrentImage(item);
                 setIsComplete(false);
                 setColoredPercentage(0);
                 
-                const canvas = canvasRef.current;
-                if (canvas) {
-                    const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    
-                    ctx.font = 'bold 200px Arial';
-                    ctx.strokeStyle = '#000000';
-                    ctx.lineWidth = 8;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.strokeText(randomItem.image, canvas.width / 2, canvas.height / 2);
-                }
+                setTimeout(() => {
+                    const canvas = canvasRef.current;
+                    if (canvas) {
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        ctx.font = 'bold 200px Arial';
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 8;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.strokeText(item.image, canvas.width / 2, canvas.height / 2);
+                    }
+                }, 100);
+            };
+
+            const handleImageSelect = (index) => {
+                setSelectedIndex(index);
+                selectImage(availableImages[index]);
             };
 
             const startDrawing = (e) => {
@@ -339,24 +304,48 @@
 
             return (
                 <div style={{ width: '100%', height: '100%', background: 'linear-gradient(to bottom right, #e9d5ff, #fce7f3)', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                         <button onClick={onBack} style={{ padding: '0.5rem', background: 'transparent', border: 'none', borderRadius: '0.5rem' }}>
-                            <Home size={28} style={{ color: '#9333ea' }} />
+                            <Home size={24} style={{ color: '#9333ea' }} />
                         </button>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#9333ea' }}>🎨 Coloring Fun</h2>
-                        <button onClick={selectRandomImage} style={{ padding: '0.5rem 1rem', background: '#22c55e', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 'bold' }}>
-                            New Image
-                        </button>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#9333ea' }}>🎨 Coloring Fun</h2>
+                        <div style={{ width: '2rem' }} />
                     </div>
 
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-                        <div style={{ background: 'white', borderRadius: '1rem', boxShadow: '0 25px 50px rgba(0,0,0,0.25)', padding: '1.5rem', display: 'flex', gap: '1.5rem' }}>
-                            <div style={{ position: 'relative' }}>
+                    {/* Image Selector Scroller */}
+                    <div style={{ padding: '0.5rem', background: '#faf5ff', borderBottom: '2px solid #e9d5ff', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
+                            {availableImages.map((item, index) => (
+                                <button
+                                    key={item.letter}
+                                    onClick={() => handleImageSelect(index)}
+                                    style={{
+                                        padding: '0.5rem 1rem',
+                                        background: selectedIndex === index ? '#9333ea' : 'white',
+                                        color: selectedIndex === index ? 'white' : '#9333ea',
+                                        border: '2px solid #9333ea',
+                                        borderRadius: '0.5rem',
+                                        fontWeight: 'bold',
+                                        fontSize: '1rem',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.25rem'
+                                    }}
+                                >
+                                    {item.image} {item.letter}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', overflow: 'auto' }}>
+                        <div style={{ background: 'white', borderRadius: '1rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', padding: '1rem', display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: '1rem', maxWidth: '100%', maxHeight: '100%' }}>
+                            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                 <canvas
                                     ref={canvasRef}
-                                    width={500}
-                                    height={500}
-                                    style={{ border: '4px solid #c084fc', borderRadius: '0.75rem', cursor: 'crosshair', background: 'white' }}
+                                    width={Math.min(400, window.innerWidth - 40)}
+                                    height={Math.min(400, window.innerWidth - 40)}
+                                    style={{ border: '4px solid #c084fc', borderRadius: '0.75rem', cursor: 'crosshair', background: 'white', maxWidth: '100%', maxHeight: '100%' }}
                                     onMouseDown={startDrawing}
                                     onMouseMove={draw}
                                     onMouseUp={stopDrawing}
@@ -367,30 +356,30 @@
                                 />
                                 {isComplete && (
                                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <div style={{ background: 'white', padding: '2rem', borderRadius: '1rem', textAlign: 'center' }} className="animate-bounce">
-                                            <Award size={64} style={{ color: '#eab308', margin: '0 auto 1rem' }} />
-                                            <h3 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#9333ea', marginBottom: '0.5rem' }}>
+                                        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', textAlign: 'center' }} className="animate-bounce">
+                                            <Award size={48} style={{ color: '#eab308', margin: '0 auto 0.5rem' }} />
+                                            <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#9333ea', marginBottom: '0.25rem' }}>
                                                 {currentImage.letter} for {currentImage.word}!
                                             </h3>
-                                            <p style={{ fontSize: '1.25rem', color: '#4b5563' }}>Amazing Work! 🎉</p>
+                                            <p style={{ fontSize: '1rem', color: '#4b5563' }}>Amazing Work! 🎉</p>
                                         </div>
                                     </div>
                                 )}
                             </div>
 
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                <div style={{ background: '#faf5ff', padding: '1rem', borderRadius: '0.75rem' }}>
-                                    <h3 style={{ fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.75rem', color: '#9333ea' }}>Colors</h3>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', minWidth: '200px' }}>
+                                <div style={{ background: '#faf5ff', padding: '0.75rem', borderRadius: '0.5rem' }}>
+                                    <h3 style={{ fontWeight: 'bold', fontSize: '0.875rem', marginBottom: '0.5rem', color: '#9333ea' }}>Colors</h3>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.375rem' }}>
                                         {colors.map((color) => (
                                             <button
                                                 key={color}
                                                 onClick={() => setSelectedColor(color)}
                                                 style={{ 
-                                                    width: '3rem', 
-                                                    height: '3rem', 
-                                                    borderRadius: '0.5rem', 
-                                                    border: selectedColor === color ? '4px solid #9333ea' : '4px solid #d1d5db',
+                                                    width: '2.5rem', 
+                                                    height: '2.5rem', 
+                                                    borderRadius: '0.375rem', 
+                                                    border: selectedColor === color ? '3px solid #9333ea' : '2px solid #d1d5db',
                                                     background: color,
                                                     transform: selectedColor === color ? 'scale(1.1)' : 'scale(1)',
                                                     transition: 'transform 0.2s'
@@ -400,8 +389,8 @@
                                     </div>
                                 </div>
 
-                                <div style={{ background: '#faf5ff', padding: '1rem', borderRadius: '0.75rem' }}>
-                                    <h3 style={{ fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.75rem', color: '#9333ea' }}>Brush Size</h3>
+                                <div style={{ background: '#faf5ff', padding: '0.75rem', borderRadius: '0.5rem' }}>
+                                    <h3 style={{ fontWeight: 'bold', fontSize: '0.875rem', marginBottom: '0.5rem', color: '#9333ea' }}>Brush Size</h3>
                                     <input
                                         type="range"
                                         min="5"
@@ -410,23 +399,23 @@
                                         onChange={(e) => setBrushSize(Number(e.target.value))}
                                         style={{ width: '100%' }}
                                     />
-                                    <p style={{ textAlign: 'center', marginTop: '0.5rem', color: '#4b5563' }}>{brushSize}px</p>
+                                    <p style={{ textAlign: 'center', marginTop: '0.25rem', color: '#4b5563', fontSize: '0.875rem' }}>{brushSize}px</p>
                                 </div>
 
-                                <div style={{ background: '#faf5ff', padding: '1rem', borderRadius: '0.75rem' }}>
-                                    <h3 style={{ fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.75rem', color: '#9333ea' }}>Progress</h3>
-                                    <div style={{ width: '100%', background: '#e5e7eb', borderRadius: '9999px', height: '1.5rem' }}>
+                                <div style={{ background: '#faf5ff', padding: '0.75rem', borderRadius: '0.5rem' }}>
+                                    <h3 style={{ fontWeight: 'bold', fontSize: '0.875rem', marginBottom: '0.5rem', color: '#9333ea' }}>Progress</h3>
+                                    <div style={{ width: '100%', background: '#e5e7eb', borderRadius: '9999px', height: '1.25rem' }}>
                                         <div
                                             style={{ 
                                                 background: '#22c55e', 
-                                                height: '1.5rem', 
+                                                height: '1.25rem', 
                                                 borderRadius: '9999px', 
                                                 transition: 'width 0.3s',
                                                 width: `${coloredPercentage}%`
                                             }}
                                         />
                                     </div>
-                                    <p style={{ textAlign: 'center', marginTop: '0.5rem', color: '#4b5563' }}>{coloredPercentage}%</p>
+                                    <p style={{ textAlign: 'center', marginTop: '0.25rem', color: '#4b5563', fontSize: '0.875rem' }}>{coloredPercentage}%</p>
                                 </div>
                             </div>
                         </div>
@@ -435,19 +424,22 @@
             );
         };
 
-        // Matching Game Component
-        const MatchingGame = ({ difficulty, onBack }) => {
+        // Matching Game with Drag and Drop
+        const MatchingGame = ({ onBack }) => {
             const [currentSet, setCurrentSet] = useState(0);
             const [leftItems, setLeftItems] = useState([]);
             const [rightItems, setRightItems] = useState([]);
             const [matches, setMatches] = useState({});
-            const [selectedLeft, setSelectedLeft] = useState(null);
             const [correctMatches, setCorrectMatches] = useState(0);
             const [showCelebration, setShowCelebration] = useState(false);
+            const [draggedItem, setDraggedItem] = useState(null);
+            const [dragLine, setDragLine] = useState(null);
+            const leftRefs = useRef({});
+            const rightRefs = useRef({});
 
             useEffect(() => {
                 loadNextSet();
-            }, [currentSet, difficulty]);
+            }, [currentSet]);
 
             const loadNextSet = () => {
                 const startIdx = currentSet * 5;
@@ -455,12 +447,9 @@
                 
                 setLeftItems(setData.map(item => ({ letter: item.letter, word: item.word })));
                 
+                // Always jumble right side
                 let rightData = [...setData];
-                if (difficulty === 'jumbled') {
-                    rightData = [rightData[0], rightData[2], rightData[1], rightData[4], rightData[3]];
-                } else if (difficulty === 'random') {
-                    rightData.sort(() => Math.random() - 0.5);
-                }
+                rightData.sort(() => Math.random() - 0.5);
                 
                 setRightItems(rightData.map(item => ({ 
                     letter: item.letter, 
@@ -469,24 +458,44 @@
                 })));
                 
                 setMatches({});
-                setSelectedLeft(null);
                 setCorrectMatches(0);
                 setShowCelebration(false);
+                setDraggedItem(null);
+                setDragLine(null);
             };
 
-            const handleLeftClick = (letter) => {
-                setSelectedLeft(letter);
+            const handleDragStart = (e, letter) => {
+                setDraggedItem(letter);
+                const rect = leftRefs.current[letter].getBoundingClientRect();
+                const startX = rect.left + rect.width / 2;
+                const startY = rect.top + rect.height / 2;
+                setDragLine({ startX, startY, endX: startX, endY: startY });
             };
 
-            const handleRightClick = (letter) => {
-                if (!selectedLeft) return;
+            const handleDragMove = (e) => {
+                if (!draggedItem || !dragLine) return;
                 
-                if (selectedLeft === letter) {
-                    const newMatches = { ...matches, [selectedLeft]: letter };
+                let clientX, clientY;
+                if (e.type.includes('touch')) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                setDragLine(prev => ({ ...prev, endX: clientX, endY: clientY }));
+            };
+
+            const handleDragEnd = (e, targetLetter) => {
+                if (!draggedItem) return;
+                
+                if (targetLetter && draggedItem === targetLetter) {
+                    const newMatches = { ...matches, [draggedItem]: targetLetter };
                     setMatches(newMatches);
                     
-                    const item = alphabetData.find(i => i.letter === letter);
-                    speak(`${letter} for ${item.word}`);
+                    const item = alphabetData.find(i => i.letter === targetLetter);
+                    speak(`${targetLetter} for ${item.word}`);
                     
                     const newCorrectMatches = correctMatches + 1;
                     setCorrectMatches(newCorrectMatches);
@@ -501,50 +510,81 @@
                             }
                         }, 2000);
                     }
-                    
-                    setSelectedLeft(null);
-                } else {
-                    setSelectedLeft(null);
                 }
+                
+                setDraggedItem(null);
+                setDragLine(null);
             };
 
             return (
                 <div style={{ width: '100%', height: '100%', background: 'linear-gradient(to bottom right, #dbeafe, #d1fae5)', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                         <button onClick={onBack} style={{ padding: '0.5rem', background: 'transparent', border: 'none', borderRadius: '0.5rem' }}>
-                            <Home size={28} style={{ color: '#2563eb' }} />
+                            <Home size={24} style={{ color: '#2563eb' }} />
                         </button>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#2563eb' }}>
-                            Match the Letters! (Set {currentSet + 1}/6)
+                        <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#2563eb' }}>
+                            Match Letters! ({currentSet + 1}/6)
                         </h2>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <CheckCircle size={24} style={{ color: '#16a34a' }} />
-                            <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{correctMatches}/5</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <CheckCircle size={20} style={{ color: '#16a34a' }} />
+                            <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>{correctMatches}/5</span>
                         </div>
                     </div>
 
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-                        <div style={{ display: 'flex', gap: '3rem', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {/* Set Selector Scroller */}
+                    <div style={{ padding: '0.5rem', background: '#f0f9ff', borderBottom: '2px solid #bae6fd', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
+                            {[0, 1, 2, 3, 4, 5].map((setNum) => (
+                                <button
+                                    key={setNum}
+                                    onClick={() => setCurrentSet(setNum)}
+                                    style={{
+                                        padding: '0.5rem 1rem',
+                                        background: currentSet === setNum ? '#2563eb' : 'white',
+                                        color: currentSet === setNum ? 'white' : '#2563eb',
+                                        border: '2px solid #2563eb',
+                                        borderRadius: '0.5rem',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.875rem'
+                                    }}
+                                >
+                                    Set {setNum + 1}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div 
+                        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', position: 'relative', overflow: 'auto' }}
+                        onMouseMove={handleDragMove}
+                        onTouchMove={handleDragMove}
+                        onMouseUp={() => handleDragEnd(null, null)}
+                        onTouchEnd={() => handleDragEnd(null, null)}
+                    >
+                        <div style={{ display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: '2rem', alignItems: 'center' }}>
+                            {/* Left - Letters */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {leftItems.map((item) => (
                                     <button
                                         key={item.letter}
-                                        onClick={() => handleLeftClick(item.letter)}
+                                        ref={el => leftRefs.current[item.letter] = el}
+                                        onMouseDown={(e) => !matches[item.letter] && handleDragStart(e, item.letter)}
+                                        onTouchStart={(e) => !matches[item.letter] && handleDragStart(e, item.letter)}
                                         disabled={matches[item.letter]}
+                                        className={draggedItem === item.letter ? 'dragging' : ''}
                                         style={{ 
-                                            width: '8rem', 
-                                            height: '6rem', 
-                                            fontSize: '2.25rem', 
+                                            width: '6rem', 
+                                            height: '5rem', 
+                                            fontSize: '2rem', 
                                             fontWeight: 'bold', 
                                             borderRadius: '0.75rem', 
-                                            boxShadow: '0 10px 15px rgba(0,0,0,0.1)', 
+                                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
                                             transition: 'all 0.2s',
-                                            background: matches[item.letter] ? '#bbf7d0' : (selectedLeft === item.letter ? '#fbbf24' : 'white'),
-                                            color: matches[item.letter] ? '#166534' : (selectedLeft === item.letter ? 'white' : '#2563eb'),
-                                            opacity: matches[item.letter] ? 0.5 : 1,
-                                            border: 'none',
-                                            cursor: matches[item.letter] ? 'not-allowed' : 'pointer',
-                                            transform: selectedLeft === item.letter ? 'scale(1.1)' : 'scale(1)'
+                                            background: matches[item.letter] ? '#86efac' : (draggedItem === item.letter ? '#fbbf24' : 'white'),
+                                            color: matches[item.letter] ? '#166534' : (draggedItem === item.letter ? 'white' : '#2563eb'),
+                                            opacity: matches[item.letter] ? 0.6 : 1,
+                                            border: matches[item.letter] ? '3px solid #22c55e' : '2px solid #2563eb',
+                                            cursor: matches[item.letter] ? 'not-allowed' : 'grab'
                                         }}
                                     >
                                         {item.letter}
@@ -552,47 +592,66 @@
                                 ))}
                             </div>
 
-                            <div style={{ fontSize: '3.75rem', color: '#9ca3af' }}>⟷</div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {/* Right - Images */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {rightItems.map((item) => {
                                     const isMatched = Object.values(matches).includes(item.letter);
                                     return (
                                         <button
                                             key={item.letter}
-                                            onClick={() => handleRightClick(item.letter)}
+                                            ref={el => rightRefs.current[item.letter] = el}
+                                            onMouseUp={(e) => handleDragEnd(e, item.letter)}
+                                            onTouchEnd={(e) => handleDragEnd(e, item.letter)}
                                             disabled={isMatched}
                                             style={{ 
-                                                width: '10rem', 
-                                                height: '6rem', 
+                                                width: '8rem', 
+                                                height: '5rem', 
                                                 borderRadius: '0.75rem', 
-                                                boxShadow: '0 10px 15px rgba(0,0,0,0.1)', 
+                                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
                                                 transition: 'all 0.2s',
                                                 display: 'flex',
                                                 flexDirection: 'column',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                background: isMatched ? '#bbf7d0' : 'white',
-                                                opacity: isMatched ? 0.5 : 1,
-                                                border: 'none',
+                                                background: isMatched ? '#86efac' : 'white',
+                                                opacity: isMatched ? 0.6 : 1,
+                                                border: isMatched ? '3px solid #22c55e' : '2px solid #cbd5e1',
                                                 cursor: isMatched ? 'not-allowed' : 'pointer'
                                             }}
                                         >
-                                            <span style={{ fontSize: '2.25rem', marginBottom: '0.25rem' }}>{item.image}</span>
-                                            <span style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#374151' }}>{item.word}</span>
+                                            <span style={{ fontSize: '2rem', marginBottom: '0.125rem' }}>{item.image}</span>
+                                            <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#374151' }}>{item.word}</span>
                                         </button>
                                     );
                                 })}
                             </div>
                         </div>
+
+                        {/* Drag Line */}
+                        {dragLine && (
+                            <svg 
+                                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+                                className="drag-line"
+                            >
+                                <line 
+                                    x1={dragLine.startX} 
+                                    y1={dragLine.startY} 
+                                    x2={dragLine.endX} 
+                                    y2={dragLine.endY} 
+                                    stroke="#fbbf24" 
+                                    strokeWidth="4" 
+                                    strokeDasharray="5,5"
+                                />
+                            </svg>
+                        )}
                     </div>
 
                     {showCelebration && (
                         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
-                            <div style={{ background: 'white', padding: '3rem', borderRadius: '1.5rem', textAlign: 'center' }} className="animate-bounce">
-                                <Award size={96} style={{ color: '#eab308', margin: '0 auto 1rem' }} />
-                                <h2 style={{ fontSize: '2.25rem', fontWeight: 'bold', color: '#16a34a', marginBottom: '0.5rem' }}>Awesome! 🎉</h2>
-                                <p style={{ fontSize: '1.5rem', color: '#4b5563' }}>Moving to next set...</p>
+                            <div style={{ background: 'white', padding: '2rem', borderRadius: '1.5rem', textAlign: 'center' }} className="animate-bounce">
+                                <Award size={64} style={{ color: '#eab308', margin: '0 auto 1rem' }} />
+                                <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#16a34a', marginBottom: '0.5rem' }}>Awesome! 🎉</h2>
+                                <p style={{ fontSize: '1.25rem', color: '#4b5563' }}>Moving to next set...</p>
                             </div>
                         </div>
                     )}
@@ -600,14 +659,12 @@
             );
         };
 
-        // Main App Component
+        // Main App
         const AlphabetGame = () => {
             const [menuOpen, setMenuOpen] = useState(false);
             const [currentScreen, setCurrentScreen] = useState('home');
-            const [difficulty, setDifficulty] = useState('sequential');
 
-            const startMatchingGame = (diff) => {
-                setDifficulty(diff);
+            const startMatchingGame = () => {
                 setCurrentScreen('matching');
                 setMenuOpen(false);
             };
@@ -622,7 +679,7 @@
             };
 
             if (currentScreen === 'matching') {
-                return <MatchingGame difficulty={difficulty} onBack={goHome} />;
+                return <MatchingGame onBack={goHome} />;
             }
 
             if (currentScreen === 'coloring') {
@@ -631,57 +688,52 @@
 
             return (
                 <div style={{ width: '100%', height: '100vh', background: 'linear-gradient(to bottom right, #fef3c7, #fce7f3, #dbeafe)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.5rem', background: 'white', boxShadow: '0 10px 15px rgba(0,0,0,0.1)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                         <button
                             onClick={() => setMenuOpen(!menuOpen)}
-                            style={{ padding: '0.75rem', background: 'transparent', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}
+                            style={{ padding: '0.5rem', background: 'transparent', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}
                         >
-                            {menuOpen ? <X size={32} /> : <Menu size={32} />}
+                            {menuOpen ? <X size={28} /> : <Menu size={28} />}
                         </button>
-                        <h1 style={{ fontSize: '2.25rem', fontWeight: 'bold', background: 'linear-gradient(to right, #9333ea, #db2777)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                            🎓 ABC Learning Fun
-                        </h1>
-                        <div style={{ width: '3.5rem' }} />
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <img 
+                                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%239333ea'/%3E%3Ctext x='20' y='28' font-size='24' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EFL%3C/text%3E%3C/svg%3E"
+                                alt="Fun Learning"
+                                style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #9333ea' }}
+                            />
+                            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', background: 'linear-gradient(to right, #9333ea, #db2777)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                                Fun Learning
+                            </h1>
+                        </div>
+                        
+                        <div style={{ width: '2.5rem' }} />
                     </div>
 
                     {menuOpen && (
-                        <div style={{ position: 'absolute', left: 0, top: '5rem', background: 'white', boxShadow: '0 25px 50px rgba(0,0,0,0.25)', borderRadius: '0 1.5rem 1.5rem 0', padding: '1.5rem', zIndex: 50, width: '20rem' }}>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem', color: '#1f2937' }}>Choose Activity</h2>
+                        <div style={{ position: 'absolute', left: 0, top: '4.5rem', background: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.25)', borderRadius: '0 1rem 1rem 0', padding: '1.25rem', zIndex: 50, width: '16rem' }}>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#1f2937' }}>Choose Activity</h2>
                             
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                <div style={{ border: '2px solid #e9d5ff', borderRadius: '0.75rem', padding: '1rem' }}>
-                                    <h3 style={{ fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#9333ea' }}>
-                                        <Volume2 size={20} /> Match the Following
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <div style={{ border: '2px solid #e9d5ff', borderRadius: '0.75rem', padding: '0.75rem' }}>
+                                    <h3 style={{ fontWeight: 'bold', fontSize: '1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.375rem', color: '#9333ea' }}>
+                                        <Volume2 size={18} /> Match the Following
                                     </h3>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                        <button
-                                            onClick={() => startMatchingGame('sequential')}
-                                            style={{ width: '100%', padding: '0.75rem', background: '#3b82f6', color: 'white', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
-                                        >
-                                            📝 Sequential (A, B, C, D, E)
-                                        </button>
-                                        <button
-                                            onClick={() => startMatchingGame('jumbled')}
-                                            style={{ width: '100%', padding: '0.75rem', background: '#22c55e', color: 'white', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
-                                        >
-                                            🔀 Simple Jumbled (A, C, B, E, D)
-                                        </button>
-                                        <button
-                                            onClick={() => startMatchingGame('random')}
-                                            style={{ width: '100%', padding: '0.75rem', background: '#f97316', color: 'white', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
-                                        >
-                                            🎲 Random (F, G, L, Z, H)
-                                        </button>
-                                    </div>
+                                    <button
+                                        onClick={startMatchingGame}
+                                        style={{ width: '100%', padding: '0.625rem', background: '#3b82f6', color: 'white', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.875rem' }}
+                                    >
+                                        🔤 Start Matching
+                                    </button>
                                 </div>
 
-                                <div style={{ border: '2px solid #fbcfe8', borderRadius: '0.75rem', padding: '1rem' }}>
-                                    <h3 style={{ fontWeight: 'bold', fontSize: '1.125rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ec4899' }}>
-                                        <Palette size={20} /> Coloring Fun
+                                <div style={{ border: '2px solid #fbcfe8', borderRadius: '0.75rem', padding: '0.75rem' }}>
+                                    <h3 style={{ fontWeight: 'bold', fontSize: '1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.375rem', color: '#ec4899' }}>
+                                        <Palette size={18} /> Coloring Fun
                                     </h3>
                                     <button
                                         onClick={startColoringGame}
-                                        style={{ width: '100%', padding: '0.75rem', background: '#ec4899', color: 'white', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
+                                        style={{ width: '100%', padding: '0.625rem', background: '#ec4899', color: 'white', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.875rem' }}
                                     >
                                         🎨 Start Coloring
                                     </button>
@@ -690,44 +742,52 @@
                         </div>
                     )}
 
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-                        <div style={{ textAlign: 'center' }}>
-                            <h2 style={{ fontSize: '3.75rem', fontWeight: 'bold', marginBottom: '2rem' }} className="animate-bounce">
+                    <div className="scrollable" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+                        <div style={{ textAlign: 'center', maxWidth: '800px' }}>
+                            <h2 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }} className="animate-bounce">
                                 Welcome! 👋
                             </h2>
-                            <p style={{ fontSize: '1.875rem', color: '#374151', marginBottom: '3rem' }}>
+                            <p style={{ fontSize: '1.25rem', color: '#374151', marginBottom: '2rem' }}>
                                 Click the menu to start learning!
                             </p>
                             
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem', maxWidth: '56rem', margin: '0 auto' }}>
-                                <div style={{ background: 'white', borderRadius: '1.5rem', padding: '2rem', boxShadow: '0 25px 50px rgba(0,0,0,0.25)', transition: 'transform 0.2s' }} className="hover:scale-105">
-                                    <div style={{ fontSize: '4.5rem', marginBottom: '1rem' }}>🔤</div>
-                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#9333ea', marginBottom: '0.5rem' }}>Match Letters</h3>
-                                    <p style={{ color: '#4b5563' }}>Learn your ABCs by matching!</p>
-                                </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth < 600 ? '1fr' : 'repeat(2, 1fr)', gap: '1.5rem' }}>
+                                <button 
+                                    onClick={startMatchingGame}
+                                    style={{ background: 'white', borderRadius: '1.5rem', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' }}
+                                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                >
+                                    <div style={{ fontSize: '4rem', marginBottom: '0.75rem' }}>🔤</div>
+                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#9333ea', marginBottom: '0.375rem' }}>Match Letters</h3>
+                                    <p style={{ color: '#4b5563', fontSize: '0.875rem' }}>Drag & drop to learn!</p>
+                                </button>
                                 
-                                <div style={{ background: 'white', borderRadius: '1.5rem', padding: '2rem', boxShadow: '0 25px 50px rgba(0,0,0,0.25)', transition: 'transform 0.2s' }} className="hover:scale-105">
-                                    <div style={{ fontSize: '4.5rem', marginBottom: '1rem' }}>🎨</div>
-                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ec4899', marginBottom: '0.5rem' }}>Color & Learn</h3>
-                                    <p style={{ color: '#4b5563' }}>Color beautiful pictures!</p>
-                                </div>
+                                <button 
+                                    onClick={startColoringGame}
+                                    style={{ background: 'white', borderRadius: '1.5rem', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' }}
+                                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                >
+                                    <div style={{ fontSize: '4rem', marginBottom: '0.75rem' }}>🎨</div>
+                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#ec4899', marginBottom: '0.375rem' }}>Color & Learn</h3>
+                                    <p style={{ color: '#4b5563', fontSize: '0.875rem' }}>Color beautiful pictures!</p>
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.5)', textAlign: 'center', color: '#4b5563' }}>
-                        <p style={{ fontSize: '0.875rem' }}>🎮 Best played in landscape mode on tablets and phones!</p>
+                    <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.5)', textAlign: 'center', color: '#4b5563' }}>
+                        <p style={{ fontSize: '0.75rem' }}>🎮 Works in portrait and landscape mode!</p>
                     </div>
                 </div>
             );
         };
 
-        // Render the app
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<AlphabetGame />);
     </script>
 
-    <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js').catch(err => {
