@@ -83,17 +83,6 @@
             overflow-y: auto;
             overflow-x: hidden;
         }
-
-        .drag-line {
-            position: absolute;
-            pointer-events: none;
-            z-index: 100;
-        }
-
-        .dragging {
-            opacity: 0.7;
-            transform: scale(1.1);
-        }
     </style>
 </head>
 <body>
@@ -424,7 +413,7 @@
             );
         };
 
-        // Matching Game with Drag and Drop
+        // Matching Game with FIXED Drag and Drop
         const MatchingGame = ({ onBack }) => {
             const [currentSet, setCurrentSet] = useState(0);
             const [leftItems, setLeftItems] = useState([]);
@@ -432,10 +421,9 @@
             const [matches, setMatches] = useState({});
             const [correctMatches, setCorrectMatches] = useState(0);
             const [showCelebration, setShowCelebration] = useState(false);
-            const [draggedItem, setDraggedItem] = useState(null);
-            const [dragLine, setDragLine] = useState(null);
-            const leftRefs = useRef({});
-            const rightRefs = useRef({});
+            const [draggedLetter, setDraggedLetter] = useState(null);
+            const [dragPosition, setDragPosition] = useState(null);
+            const containerRef = useRef(null);
 
             useEffect(() => {
                 loadNextSet();
@@ -445,75 +433,127 @@
                 const startIdx = currentSet * 5;
                 const setData = alphabetData.slice(startIdx, startIdx + 5);
                 
-                setLeftItems(setData.map(item => ({ letter: item.letter, word: item.word })));
+                setLeftItems(setData);
                 
-                // Always jumble right side
-                let rightData = [...setData];
-                rightData.sort(() => Math.random() - 0.5);
-                
-                setRightItems(rightData.map(item => ({ 
-                    letter: item.letter, 
-                    word: item.word, 
-                    image: item.image 
-                })));
+                // ALWAYS JUMBLE - Create new shuffled array
+                const shuffled = [...setData].sort(() => Math.random() - 0.5);
+                setRightItems(shuffled);
                 
                 setMatches({});
                 setCorrectMatches(0);
                 setShowCelebration(false);
-                setDraggedItem(null);
-                setDragLine(null);
+                setDraggedLetter(null);
+                setDragPosition(null);
             };
 
-            const handleDragStart = (e, letter) => {
-                setDraggedItem(letter);
-                const rect = leftRefs.current[letter].getBoundingClientRect();
-                const startX = rect.left + rect.width / 2;
-                const startY = rect.top + rect.height / 2;
-                setDragLine({ startX, startY, endX: startX, endY: startY });
+            const handleTouchStart = (e, letter) => {
+                if (matches[letter]) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                setDraggedLetter(letter);
+                setDragPosition({ x: touch.clientX, y: touch.clientY });
             };
 
-            const handleDragMove = (e) => {
-                if (!draggedItem || !dragLine) return;
-                
-                let clientX, clientY;
-                if (e.type.includes('touch')) {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
-                }
-                
-                setDragLine(prev => ({ ...prev, endX: clientX, endY: clientY }));
+            const handleTouchMove = (e) => {
+                if (!draggedLetter) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                setDragPosition({ x: touch.clientX, y: touch.clientY });
             };
 
-            const handleDragEnd = (e, targetLetter) => {
-                if (!draggedItem) return;
+            const handleTouchEnd = (e) => {
+                if (!draggedLetter) return;
                 
-                if (targetLetter && draggedItem === targetLetter) {
-                    const newMatches = { ...matches, [draggedItem]: targetLetter };
-                    setMatches(newMatches);
+                const touch = e.changedTouches[0];
+                const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                
+                if (element && element.dataset.letter) {
+                    const targetLetter = element.dataset.letter;
                     
-                    const item = alphabetData.find(i => i.letter === targetLetter);
-                    speak(`${targetLetter} for ${item.word}`);
-                    
-                    const newCorrectMatches = correctMatches + 1;
-                    setCorrectMatches(newCorrectMatches);
-                    
-                    if (newCorrectMatches === 5) {
-                        setShowCelebration(true);
-                        setTimeout(() => {
-                            if (currentSet < 5) {
-                                setCurrentSet(currentSet + 1);
-                            } else {
-                                speak("Congratulations! You completed all sets!");
-                            }
-                        }, 2000);
+                    if (draggedLetter === targetLetter) {
+                        // Correct match!
+                        const newMatches = { ...matches, [draggedLetter]: targetLetter };
+                        setMatches(newMatches);
+                        
+                        const item = alphabetData.find(i => i.letter === targetLetter);
+                        speak(`${targetLetter} for ${item.word}`);
+                        
+                        const newCorrectMatches = correctMatches + 1;
+                        setCorrectMatches(newCorrectMatches);
+                        
+                        if (newCorrectMatches === 5) {
+                            setShowCelebration(true);
+                            setTimeout(() => {
+                                if (currentSet < 5) {
+                                    setCurrentSet(currentSet + 1);
+                                } else {
+                                    speak("Congratulations! You completed all sets!");
+                                    setCurrentSet(0);
+                                }
+                            }, 2000);
+                        }
                     }
                 }
                 
-                setDraggedItem(null);
-                setDragLine(null);
+                setDraggedLetter(null);
+                setDragPosition(null);
+            };
+
+            const handleMouseDown = (e, letter) => {
+                if (matches[letter]) return;
+                setDraggedLetter(letter);
+                setDragPosition({ x: e.clientX, y: e.clientY });
+            };
+
+            const handleMouseMove = (e) => {
+                if (!draggedLetter) return;
+                setDragPosition({ x: e.clientX, y: e.clientY });
+            };
+
+            const handleMouseUp = (e) => {
+                if (!draggedLetter) return;
+                
+                const element = document.elementFromPoint(e.clientX, e.clientY);
+                
+                if (element && element.dataset.letter) {
+                    const targetLetter = element.dataset.letter;
+                    
+                    if (draggedLetter === targetLetter) {
+                        const newMatches = { ...matches, [draggedLetter]: targetLetter };
+                        setMatches(newMatches);
+                        
+                        const item = alphabetData.find(i => i.letter === targetLetter);
+                        speak(`${targetLetter} for ${item.word}`);
+                        
+                        const newCorrectMatches = correctMatches + 1;
+                        setCorrectMatches(newCorrectMatches);
+                        
+                        if (newCorrectMatches === 5) {
+                            setShowCelebration(true);
+                            setTimeout(() => {
+                                if (currentSet < 5) {
+                                    setCurrentSet(currentSet + 1);
+                                } else {
+                                    speak("Congratulations! You completed all sets!");
+                                    setCurrentSet(0);
+                                }
+                            }, 2000);
+                        }
+                    }
+                }
+                
+                setDraggedLetter(null);
+                setDragPosition(null);
+            };
+
+            const getLetterPosition = (letter) => {
+                const element = document.getElementById(`letter-${letter}`);
+                if (!element) return null;
+                const rect = element.getBoundingClientRect();
+                return {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2
+                };
             };
 
             return (
@@ -531,7 +571,7 @@
                         </div>
                     </div>
 
-                    {/* Set Selector Scroller */}
+                    {/* Set Selector */}
                     <div style={{ padding: '0.5rem', background: '#f0f9ff', borderBottom: '2px solid #bae6fd', overflowX: 'auto', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
                             {[0, 1, 2, 3, 4, 5].map((setNum) => (
@@ -555,23 +595,23 @@
                     </div>
 
                     <div 
+                        ref={containerRef}
                         style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', position: 'relative', overflow: 'auto' }}
-                        onMouseMove={handleDragMove}
-                        onTouchMove={handleDragMove}
-                        onMouseUp={() => handleDragEnd(null, null)}
-                        onTouchEnd={() => handleDragEnd(null, null)}
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
                     >
-                        <div style={{ display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: '2rem', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: window.innerWidth < window.innerHeight ? '3rem' : '5rem', alignItems: 'center' }}>
                             {/* Left - Letters */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {leftItems.map((item) => (
                                     <button
                                         key={item.letter}
-                                        ref={el => leftRefs.current[item.letter] = el}
-                                        onMouseDown={(e) => !matches[item.letter] && handleDragStart(e, item.letter)}
-                                        onTouchStart={(e) => !matches[item.letter] && handleDragStart(e, item.letter)}
+                                        id={`letter-${item.letter}`}
+                                        onMouseDown={(e) => handleMouseDown(e, item.letter)}
+                                        onTouchStart={(e) => handleTouchStart(e, item.letter)}
                                         disabled={matches[item.letter]}
-                                        className={draggedItem === item.letter ? 'dragging' : ''}
                                         style={{ 
                                             width: '6rem', 
                                             height: '5rem', 
@@ -580,11 +620,12 @@
                                             borderRadius: '0.75rem', 
                                             boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
                                             transition: 'all 0.2s',
-                                            background: matches[item.letter] ? '#86efac' : (draggedItem === item.letter ? '#fbbf24' : 'white'),
-                                            color: matches[item.letter] ? '#166534' : (draggedItem === item.letter ? 'white' : '#2563eb'),
+                                            background: matches[item.letter] ? '#86efac' : (draggedLetter === item.letter ? '#fbbf24' : 'white'),
+                                            color: matches[item.letter] ? '#166534' : (draggedLetter === item.letter ? 'white' : '#2563eb'),
                                             opacity: matches[item.letter] ? 0.6 : 1,
-                                            border: matches[item.letter] ? '3px solid #22c55e' : '2px solid #2563eb',
-                                            cursor: matches[item.letter] ? 'not-allowed' : 'grab'
+                                            border: matches[item.letter] ? '3px solid #22c55e' : (draggedLetter === item.letter ? '3px solid #fbbf24' : '2px solid #2563eb'),
+                                            cursor: matches[item.letter] ? 'not-allowed' : 'grab',
+                                            touchAction: 'none'
                                         }}
                                     >
                                         {item.letter}
@@ -592,17 +633,14 @@
                                 ))}
                             </div>
 
-                            {/* Right - Images */}
+                            {/* Right - Images (JUMBLED) */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {rightItems.map((item) => {
                                     const isMatched = Object.values(matches).includes(item.letter);
                                     return (
-                                        <button
+                                        <div
                                             key={item.letter}
-                                            ref={el => rightRefs.current[item.letter] = el}
-                                            onMouseUp={(e) => handleDragEnd(e, item.letter)}
-                                            onTouchEnd={(e) => handleDragEnd(e, item.letter)}
-                                            disabled={isMatched}
+                                            data-letter={item.letter}
                                             style={{ 
                                                 width: '8rem', 
                                                 height: '5rem', 
@@ -616,31 +654,38 @@
                                                 background: isMatched ? '#86efac' : 'white',
                                                 opacity: isMatched ? 0.6 : 1,
                                                 border: isMatched ? '3px solid #22c55e' : '2px solid #cbd5e1',
-                                                cursor: isMatched ? 'not-allowed' : 'pointer'
+                                                cursor: 'pointer',
+                                                pointerEvents: isMatched ? 'none' : 'auto'
                                             }}
                                         >
-                                            <span style={{ fontSize: '2rem', marginBottom: '0.125rem' }}>{item.image}</span>
-                                            <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#374151' }}>{item.word}</span>
-                                        </button>
+                                            <span data-letter={item.letter} style={{ fontSize: '2rem', marginBottom: '0.125rem', pointerEvents: 'none' }}>{item.image}</span>
+                                            <span data-letter={item.letter} style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#374151', pointerEvents: 'none' }}>{item.word}</span>
+                                        </div>
                                     );
                                 })}
                             </div>
                         </div>
 
                         {/* Drag Line */}
-                        {dragLine && (
+                        {draggedLetter && dragPosition && (
                             <svg 
-                                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
-                                className="drag-line"
+                                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1000 }}
                             >
                                 <line 
-                                    x1={dragLine.startX} 
-                                    y1={dragLine.startY} 
-                                    x2={dragLine.endX} 
-                                    y2={dragLine.endY} 
+                                    x1={getLetterPosition(draggedLetter)?.x || 0}
+                                    y1={getLetterPosition(draggedLetter)?.y || 0}
+                                    x2={dragPosition.x}
+                                    y2={dragPosition.y}
                                     stroke="#fbbf24" 
                                     strokeWidth="4" 
-                                    strokeDasharray="5,5"
+                                    strokeDasharray="8,4"
+                                    strokeLinecap="round"
+                                />
+                                <circle 
+                                    cx={dragPosition.x} 
+                                    cy={dragPosition.y} 
+                                    r="8" 
+                                    fill="#fbbf24"
                                 />
                             </svg>
                         )}
