@@ -32,11 +32,6 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-20px); }
@@ -50,10 +45,6 @@
             cursor: pointer;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-        }
-
-        button:active {
-            transform: scale(0.95);
         }
 
         canvas {
@@ -74,15 +65,6 @@
             background: #888;
             border-radius: 4px;
         }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        .scrollable {
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
     </style>
 </head>
 <body>
@@ -91,45 +73,45 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // Lucide React Icons
+        // Icons
         const Menu = ({ size = 24 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>
             </svg>
         );
 
         const X = ({ size = 24 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
             </svg>
         );
 
         const Home = ({ size = 24 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
             </svg>
         );
 
         const CheckCircle = ({ size = 24 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
             </svg>
         );
 
         const Award = ({ size = 24 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
             </svg>
         );
 
         const Palette = ({ size = 24 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
             </svg>
         );
 
         const Volume2 = ({ size = 24 }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
             </svg>
         );
@@ -164,7 +146,6 @@
             { letter: 'Z', word: 'Zebra', color: '#424242', image: '🦓' }
         ];
 
-        // Text-to-speech
         const speak = (text) => {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
@@ -209,7 +190,6 @@
                         const ctx = canvas.getContext('2d');
                         ctx.fillStyle = '#FFFFFF';
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        
                         ctx.font = 'bold 200px Arial';
                         ctx.strokeStyle = '#000000';
                         ctx.lineWidth = 8;
@@ -237,7 +217,6 @@
 
             const draw = (e) => {
                 if (!isDrawing && e.type !== 'mousedown' && e.type !== 'touchstart') return;
-
                 const canvas = canvasRef.current;
                 const ctx = canvas.getContext('2d');
                 const rect = canvas.getBoundingClientRect();
@@ -285,9 +264,7 @@
                 
                 if (percentage > 60 && !isComplete) {
                     setIsComplete(true);
-                    setTimeout(() => {
-                        speak(`${currentImage.letter} for ${currentImage.word}`);
-                    }, 500);
+                    setTimeout(() => speak(`${currentImage.letter} for ${currentImage.word}`), 500);
                 }
             };
 
@@ -301,7 +278,6 @@
                         <div style={{ width: '2rem' }} />
                     </div>
 
-                    {/* Image Selector Scroller */}
                     <div style={{ padding: '0.5rem', background: '#faf5ff', borderBottom: '2px solid #e9d5ff', overflowX: 'auto', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
                             {availableImages.map((item, index) => (
@@ -328,13 +304,13 @@
                     </div>
 
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', overflow: 'auto' }}>
-                        <div style={{ background: 'white', borderRadius: '1rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', padding: '1rem', display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: '1rem', maxWidth: '100%', maxHeight: '100%' }}>
+                        <div style={{ background: 'white', borderRadius: '1rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', padding: '1rem', display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: '1rem' }}>
                             <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                                 <canvas
                                     ref={canvasRef}
                                     width={Math.min(400, window.innerWidth - 40)}
                                     height={Math.min(400, window.innerWidth - 40)}
-                                    style={{ border: '4px solid #c084fc', borderRadius: '0.75rem', cursor: 'crosshair', background: 'white', maxWidth: '100%', maxHeight: '100%' }}
+                                    style={{ border: '4px solid #c084fc', borderRadius: '0.75rem', cursor: 'crosshair', background: 'white' }}
                                     onMouseDown={startDrawing}
                                     onMouseMove={draw}
                                     onMouseUp={stopDrawing}
@@ -380,29 +356,14 @@
 
                                 <div style={{ background: '#faf5ff', padding: '0.75rem', borderRadius: '0.5rem' }}>
                                     <h3 style={{ fontWeight: 'bold', fontSize: '0.875rem', marginBottom: '0.5rem', color: '#9333ea' }}>Brush Size</h3>
-                                    <input
-                                        type="range"
-                                        min="5"
-                                        max="30"
-                                        value={brushSize}
-                                        onChange={(e) => setBrushSize(Number(e.target.value))}
-                                        style={{ width: '100%' }}
-                                    />
+                                    <input type="range" min="5" max="30" value={brushSize} onChange={(e) => setBrushSize(Number(e.target.value))} style={{ width: '100%' }} />
                                     <p style={{ textAlign: 'center', marginTop: '0.25rem', color: '#4b5563', fontSize: '0.875rem' }}>{brushSize}px</p>
                                 </div>
 
                                 <div style={{ background: '#faf5ff', padding: '0.75rem', borderRadius: '0.5rem' }}>
                                     <h3 style={{ fontWeight: 'bold', fontSize: '0.875rem', marginBottom: '0.5rem', color: '#9333ea' }}>Progress</h3>
                                     <div style={{ width: '100%', background: '#e5e7eb', borderRadius: '9999px', height: '1.25rem' }}>
-                                        <div
-                                            style={{ 
-                                                background: '#22c55e', 
-                                                height: '1.25rem', 
-                                                borderRadius: '9999px', 
-                                                transition: 'width 0.3s',
-                                                width: `${coloredPercentage}%`
-                                            }}
-                                        />
+                                        <div style={{ background: '#22c55e', height: '1.25rem', borderRadius: '9999px', transition: 'width 0.3s', width: `${coloredPercentage}%` }} />
                                     </div>
                                     <p style={{ textAlign: 'center', marginTop: '0.25rem', color: '#4b5563', fontSize: '0.875rem' }}>{coloredPercentage}%</p>
                                 </div>
@@ -413,7 +374,7 @@
             );
         };
 
-        // Matching Game with FIXED Drag and Drop
+        // COMPLETELY REWRITTEN Matching Game
         const MatchingGame = ({ onBack }) => {
             const [currentSet, setCurrentSet] = useState(0);
             const [leftItems, setLeftItems] = useState([]);
@@ -421,9 +382,20 @@
             const [matches, setMatches] = useState({});
             const [correctMatches, setCorrectMatches] = useState(0);
             const [showCelebration, setShowCelebration] = useState(false);
-            const [draggedLetter, setDraggedLetter] = useState(null);
-            const [dragPosition, setDragPosition] = useState(null);
-            const containerRef = useRef(null);
+            
+            // Drag state
+            const [dragState, setDragState] = useState({
+                isDragging: false,
+                letter: null,
+                startX: 0,
+                startY: 0,
+                currentX: 0,
+                currentY: 0
+            });
+            
+            // Refs for letter buttons
+            const leftRefs = useRef({});
+            const rightRefs = useRef({});
 
             useEffect(() => {
                 loadNextSet();
@@ -435,129 +407,114 @@
                 
                 setLeftItems(setData);
                 
-                // ALWAYS JUMBLE - Create new shuffled array
+                // Always shuffle right side
                 const shuffled = [...setData].sort(() => Math.random() - 0.5);
                 setRightItems(shuffled);
                 
                 setMatches({});
                 setCorrectMatches(0);
                 setShowCelebration(false);
-                setDraggedLetter(null);
-                setDragPosition(null);
+                setDragState({ isDragging: false, letter: null, startX: 0, startY: 0, currentX: 0, currentY: 0 });
             };
 
-            const handleTouchStart = (e, letter) => {
-                if (matches[letter]) return;
-                e.preventDefault();
-                const touch = e.touches[0];
-                setDraggedLetter(letter);
-                setDragPosition({ x: touch.clientX, y: touch.clientY });
-            };
-
-            const handleTouchMove = (e) => {
-                if (!draggedLetter) return;
-                e.preventDefault();
-                const touch = e.touches[0];
-                setDragPosition({ x: touch.clientX, y: touch.clientY });
-            };
-
-            const handleTouchEnd = (e) => {
-                if (!draggedLetter) return;
-                
-                const touch = e.changedTouches[0];
-                const element = document.elementFromPoint(touch.clientX, touch.clientY);
-                
-                if (element && element.dataset.letter) {
-                    const targetLetter = element.dataset.letter;
-                    
-                    if (draggedLetter === targetLetter) {
-                        // Correct match!
-                        const newMatches = { ...matches, [draggedLetter]: targetLetter };
-                        setMatches(newMatches);
-                        
-                        const item = alphabetData.find(i => i.letter === targetLetter);
-                        speak(`${targetLetter} for ${item.word}`);
-                        
-                        const newCorrectMatches = correctMatches + 1;
-                        setCorrectMatches(newCorrectMatches);
-                        
-                        if (newCorrectMatches === 5) {
-                            setShowCelebration(true);
-                            setTimeout(() => {
-                                if (currentSet < 5) {
-                                    setCurrentSet(currentSet + 1);
-                                } else {
-                                    speak("Congratulations! You completed all sets!");
-                                    setCurrentSet(0);
-                                }
-                            }, 2000);
-                        }
-                    }
-                }
-                
-                setDraggedLetter(null);
-                setDragPosition(null);
-            };
-
-            const handleMouseDown = (e, letter) => {
-                if (matches[letter]) return;
-                setDraggedLetter(letter);
-                setDragPosition({ x: e.clientX, y: e.clientY });
-            };
-
-            const handleMouseMove = (e) => {
-                if (!draggedLetter) return;
-                setDragPosition({ x: e.clientX, y: e.clientY });
-            };
-
-            const handleMouseUp = (e) => {
-                if (!draggedLetter) return;
-                
-                const element = document.elementFromPoint(e.clientX, e.clientY);
-                
-                if (element && element.dataset.letter) {
-                    const targetLetter = element.dataset.letter;
-                    
-                    if (draggedLetter === targetLetter) {
-                        const newMatches = { ...matches, [draggedLetter]: targetLetter };
-                        setMatches(newMatches);
-                        
-                        const item = alphabetData.find(i => i.letter === targetLetter);
-                        speak(`${targetLetter} for ${item.word}`);
-                        
-                        const newCorrectMatches = correctMatches + 1;
-                        setCorrectMatches(newCorrectMatches);
-                        
-                        if (newCorrectMatches === 5) {
-                            setShowCelebration(true);
-                            setTimeout(() => {
-                                if (currentSet < 5) {
-                                    setCurrentSet(currentSet + 1);
-                                } else {
-                                    speak("Congratulations! You completed all sets!");
-                                    setCurrentSet(0);
-                                }
-                            }, 2000);
-                        }
-                    }
-                }
-                
-                setDraggedLetter(null);
-                setDragPosition(null);
-            };
-
-            const getLetterPosition = (letter) => {
-                const element = document.getElementById(`letter-${letter}`);
-                if (!element) return null;
-                const rect = element.getBoundingClientRect();
+            const getButtonCenter = (ref) => {
+                if (!ref) return { x: 0, y: 0 };
+                const rect = ref.getBoundingClientRect();
                 return {
                     x: rect.left + rect.width / 2,
                     y: rect.top + rect.height / 2
                 };
             };
 
+            const handleDragStart = (e, letter) => {
+                if (matches[letter]) return;
+                
+                e.preventDefault();
+                const ref = leftRefs.current[letter];
+                const center = getButtonCenter(ref);
+                
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                
+                setDragState({
+                    isDragging: true,
+                    letter: letter,
+                    startX: center.x,
+                    startY: center.y,
+                    currentX: clientX,
+                    currentY: clientY
+                });
+            };
+
+            const handleDragMove = (e) => {
+                if (!dragState.isDragging) return;
+                
+                e.preventDefault();
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                
+                setDragState(prev => ({
+                    ...prev,
+                    currentX: clientX,
+                    currentY: clientY
+                }));
+            };
+
+            const handleDragEnd = (e) => {
+                if (!dragState.isDragging) return;
+                
+                const clientX = e.type.includes('touch') ? e.changedTouches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.changedTouches[0].clientY : e.clientY;
+                
+                // Find which element is under the drop point
+                let targetLetter = null;
+                for (const item of rightItems) {
+                    const ref = rightRefs.current[item.letter];
+                    if (ref) {
+                        const rect = ref.getBoundingClientRect();
+                        if (clientX >= rect.left && clientX <= rect.right &&
+                            clientY >= rect.top && clientY <= rect.bottom) {
+                            targetLetter = item.letter;
+                            break;
+                        }
+                    }
+                }
+                
+                // Check if it's a correct match
+                if (targetLetter && dragState.letter === targetLetter) {
+                    const newMatches = { ...matches, [dragState.letter]: targetLetter };
+                    setMatches(newMatches);
+                    
+                    const item = alphabetData.find(i => i.letter === targetLetter);
+                    speak(`${targetLetter} for ${item.word}`);
+                    
+                    const newCorrectMatches = correctMatches + 1;
+                    setCorrectMatches(newCorrectMatches);
+                    
+                    if (newCorrectMatches === 5) {
+                        setShowCelebration(true);
+                        setTimeout(() => {
+                            if (currentSet < 5) {
+                                setCurrentSet(currentSet + 1);
+                            } else {
+                                speak("Congratulations! You completed all sets!");
+                                setCurrentSet(0);
+                            }
+                        }, 2000);
+                    }
+                }
+                
+                setDragState({ isDragging: false, letter: null, startX: 0, startY: 0, currentX: 0, currentY: 0 });
+            };
+
             return (
-                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(to bottom right, #dbeafe, #d1fae5)', display: 'flex', flexDirection: 'column' }}>
+                <div 
+                    style={{ width: '100%', height: '100%', background: 'linear-gradient(to bottom right, #dbeafe, #d1fae5)', display: 'flex', flexDirection: 'column' }}
+                    onMouseMove={handleDragMove}
+                    onMouseUp={handleDragEnd}
+                    onTouchMove={handleDragMove}
+                    onTouchEnd={handleDragEnd}
+                >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                         <button onClick={onBack} style={{ padding: '0.5rem', background: 'transparent', border: 'none', borderRadius: '0.5rem' }}>
                             <Home size={24} style={{ color: '#2563eb' }} />
@@ -571,7 +528,6 @@
                         </div>
                     </div>
 
-                    {/* Set Selector */}
                     <div style={{ padding: '0.5rem', background: '#f0f9ff', borderBottom: '2px solid #bae6fd', overflowX: 'auto', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
                             {[0, 1, 2, 3, 4, 5].map((setNum) => (
@@ -594,23 +550,17 @@
                         </div>
                     </div>
 
-                    <div 
-                        ref={containerRef}
-                        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', position: 'relative', overflow: 'auto' }}
-                        onMouseMove={handleMouseMove}
-                        onMouseUp={handleMouseUp}
-                        onTouchMove={handleTouchMove}
-                        onTouchEnd={handleTouchEnd}
-                    >
-                        <div style={{ display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: window.innerWidth < window.innerHeight ? '3rem' : '5rem', alignItems: 'center' }}>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', position: 'relative', overflow: 'auto' }}>
+                        <div style={{ display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: window.innerWidth < window.innerHeight ? '4rem' : '6rem', alignItems: 'center' }}>
+                            
                             {/* Left - Letters */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {leftItems.map((item) => (
                                     <button
                                         key={item.letter}
-                                        id={`letter-${item.letter}`}
-                                        onMouseDown={(e) => handleMouseDown(e, item.letter)}
-                                        onTouchStart={(e) => handleTouchStart(e, item.letter)}
+                                        ref={el => leftRefs.current[item.letter] = el}
+                                        onMouseDown={(e) => handleDragStart(e, item.letter)}
+                                        onTouchStart={(e) => handleDragStart(e, item.letter)}
                                         disabled={matches[item.letter]}
                                         style={{ 
                                             width: '6rem', 
@@ -619,13 +569,12 @@
                                             fontWeight: 'bold', 
                                             borderRadius: '0.75rem', 
                                             boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
-                                            transition: 'all 0.2s',
-                                            background: matches[item.letter] ? '#86efac' : (draggedLetter === item.letter ? '#fbbf24' : 'white'),
-                                            color: matches[item.letter] ? '#166534' : (draggedLetter === item.letter ? 'white' : '#2563eb'),
-                                            opacity: matches[item.letter] ? 0.6 : 1,
-                                            border: matches[item.letter] ? '3px solid #22c55e' : (draggedLetter === item.letter ? '3px solid #fbbf24' : '2px solid #2563eb'),
+                                            background: matches[item.letter] ? '#86efac' : (dragState.letter === item.letter ? '#fbbf24' : 'white'),
+                                            color: matches[item.letter] ? '#166534' : (dragState.letter === item.letter ? 'white' : '#2563eb'),
+                                            border: matches[item.letter] ? '3px solid #22c55e' : (dragState.letter === item.letter ? '3px solid #fbbf24' : '2px solid #2563eb'),
                                             cursor: matches[item.letter] ? 'not-allowed' : 'grab',
-                                            touchAction: 'none'
+                                            touchAction: 'none',
+                                            transition: 'all 0.2s'
                                         }}
                                     >
                                         {item.letter}
@@ -640,26 +589,24 @@
                                     return (
                                         <div
                                             key={item.letter}
-                                            data-letter={item.letter}
+                                            ref={el => rightRefs.current[item.letter] = el}
                                             style={{ 
                                                 width: '8rem', 
                                                 height: '5rem', 
                                                 borderRadius: '0.75rem', 
                                                 boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
-                                                transition: 'all 0.2s',
                                                 display: 'flex',
                                                 flexDirection: 'column',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
                                                 background: isMatched ? '#86efac' : 'white',
-                                                opacity: isMatched ? 0.6 : 1,
                                                 border: isMatched ? '3px solid #22c55e' : '2px solid #cbd5e1',
-                                                cursor: 'pointer',
-                                                pointerEvents: isMatched ? 'none' : 'auto'
+                                                transition: 'all 0.2s',
+                                                pointerEvents: 'none'
                                             }}
                                         >
-                                            <span data-letter={item.letter} style={{ fontSize: '2rem', marginBottom: '0.125rem', pointerEvents: 'none' }}>{item.image}</span>
-                                            <span data-letter={item.letter} style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#374151', pointerEvents: 'none' }}>{item.word}</span>
+                                            <span style={{ fontSize: '2rem', marginBottom: '0.125rem' }}>{item.image}</span>
+                                            <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#374151' }}>{item.word}</span>
                                         </div>
                                     );
                                 })}
@@ -667,24 +614,22 @@
                         </div>
 
                         {/* Drag Line */}
-                        {draggedLetter && dragPosition && (
-                            <svg 
-                                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1000 }}
-                            >
+                        {dragState.isDragging && (
+                            <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1000 }}>
                                 <line 
-                                    x1={getLetterPosition(draggedLetter)?.x || 0}
-                                    y1={getLetterPosition(draggedLetter)?.y || 0}
-                                    x2={dragPosition.x}
-                                    y2={dragPosition.y}
+                                    x1={dragState.startX}
+                                    y1={dragState.startY}
+                                    x2={dragState.currentX}
+                                    y2={dragState.currentY}
                                     stroke="#fbbf24" 
-                                    strokeWidth="4" 
+                                    strokeWidth="5" 
                                     strokeDasharray="8,4"
                                     strokeLinecap="round"
                                 />
                                 <circle 
-                                    cx={dragPosition.x} 
-                                    cy={dragPosition.y} 
-                                    r="8" 
+                                    cx={dragState.currentX} 
+                                    cy={dragState.currentY} 
+                                    r="10" 
                                     fill="#fbbf24"
                                 />
                             </svg>
@@ -709,77 +654,39 @@
             const [menuOpen, setMenuOpen] = useState(false);
             const [currentScreen, setCurrentScreen] = useState('home');
 
-            const startMatchingGame = () => {
-                setCurrentScreen('matching');
-                setMenuOpen(false);
-            };
-
-            const startColoringGame = () => {
-                setCurrentScreen('coloring');
-                setMenuOpen(false);
-            };
-
-            const goHome = () => {
-                setCurrentScreen('home');
-            };
-
-            if (currentScreen === 'matching') {
-                return <MatchingGame onBack={goHome} />;
-            }
-
-            if (currentScreen === 'coloring') {
-                return <ColoringBook onBack={goHome} />;
-            }
+            if (currentScreen === 'matching') return <MatchingGame onBack={() => setCurrentScreen('home')} />;
+            if (currentScreen === 'coloring') return <ColoringBook onBack={() => setCurrentScreen('home')} />;
 
             return (
                 <div style={{ width: '100%', height: '100vh', background: 'linear-gradient(to bottom right, #fef3c7, #fce7f3, #dbeafe)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-                        <button
-                            onClick={() => setMenuOpen(!menuOpen)}
-                            style={{ padding: '0.5rem', background: 'transparent', border: 'none', borderRadius: '0.5rem', cursor: 'pointer' }}
-                        >
+                        <button onClick={() => setMenuOpen(!menuOpen)} style={{ padding: '0.5rem', background: 'transparent', border: 'none', borderRadius: '0.5rem' }}>
                             {menuOpen ? <X size={28} /> : <Menu size={28} />}
                         </button>
-                        
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <img 
-                                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%239333ea'/%3E%3Ctext x='20' y='28' font-size='24' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EFL%3C/text%3E%3C/svg%3E"
-                                alt="Fun Learning"
-                                style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #9333ea' }}
-                            />
-                            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', background: 'linear-gradient(to right, #9333ea, #db2777)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                                Fun Learning
-                            </h1>
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%239333ea'/%3E%3Ctext x='20' y='28' font-size='24' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EFL%3C/text%3E%3C/svg%3E" alt="Fun Learning" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #9333ea' }} />
+                            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', background: 'linear-gradient(to right, #9333ea, #db2777)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Fun Learning</h1>
                         </div>
-                        
                         <div style={{ width: '2.5rem' }} />
                     </div>
 
                     {menuOpen && (
                         <div style={{ position: 'absolute', left: 0, top: '4.5rem', background: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.25)', borderRadius: '0 1rem 1rem 0', padding: '1.25rem', zIndex: 50, width: '16rem' }}>
                             <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#1f2937' }}>Choose Activity</h2>
-                            
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 <div style={{ border: '2px solid #e9d5ff', borderRadius: '0.75rem', padding: '0.75rem' }}>
                                     <h3 style={{ fontWeight: 'bold', fontSize: '1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.375rem', color: '#9333ea' }}>
                                         <Volume2 size={18} /> Match the Following
                                     </h3>
-                                    <button
-                                        onClick={startMatchingGame}
-                                        style={{ width: '100%', padding: '0.625rem', background: '#3b82f6', color: 'white', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.875rem' }}
-                                    >
+                                    <button onClick={() => { setCurrentScreen('matching'); setMenuOpen(false); }} style={{ width: '100%', padding: '0.625rem', background: '#3b82f6', color: 'white', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold', fontSize: '0.875rem' }}>
                                         🔤 Start Matching
                                     </button>
                                 </div>
-
                                 <div style={{ border: '2px solid #fbcfe8', borderRadius: '0.75rem', padding: '0.75rem' }}>
                                     <h3 style={{ fontWeight: 'bold', fontSize: '1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.375rem', color: '#ec4899' }}>
                                         <Palette size={18} /> Coloring Fun
                                     </h3>
-                                    <button
-                                        onClick={startColoringGame}
-                                        style={{ width: '100%', padding: '0.625rem', background: '#ec4899', color: 'white', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.875rem' }}
-                                    >
+                                    <button onClick={() => { setCurrentScreen('coloring'); setMenuOpen(false); }} style={{ width: '100%', padding: '0.625rem', background: '#ec4899', color: 'white', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold', fontSize: '0.875rem' }}>
                                         🎨 Start Coloring
                                     </button>
                                 </div>
@@ -787,33 +694,17 @@
                         </div>
                     )}
 
-                    <div className="scrollable" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', overflow: 'auto' }}>
                         <div style={{ textAlign: 'center', maxWidth: '800px' }}>
-                            <h2 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }} className="animate-bounce">
-                                Welcome! 👋
-                            </h2>
-                            <p style={{ fontSize: '1.25rem', color: '#374151', marginBottom: '2rem' }}>
-                                Click the menu to start learning!
-                            </p>
-                            
+                            <h2 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }} className="animate-bounce">Welcome! 👋</h2>
+                            <p style={{ fontSize: '1.25rem', color: '#374151', marginBottom: '2rem' }}>Click the menu to start learning!</p>
                             <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth < 600 ? '1fr' : 'repeat(2, 1fr)', gap: '1.5rem' }}>
-                                <button 
-                                    onClick={startMatchingGame}
-                                    style={{ background: 'white', borderRadius: '1.5rem', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' }}
-                                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                                >
+                                <button onClick={() => { setCurrentScreen('matching'); setMenuOpen(false); }} style={{ background: 'white', borderRadius: '1.5rem', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', border: 'none', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
                                     <div style={{ fontSize: '4rem', marginBottom: '0.75rem' }}>🔤</div>
                                     <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#9333ea', marginBottom: '0.375rem' }}>Match Letters</h3>
                                     <p style={{ color: '#4b5563', fontSize: '0.875rem' }}>Drag & drop to learn!</p>
                                 </button>
-                                
-                                <button 
-                                    onClick={startColoringGame}
-                                    style={{ background: 'white', borderRadius: '1.5rem', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' }}
-                                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                                >
+                                <button onClick={() => { setCurrentScreen('coloring'); setMenuOpen(false); }} style={{ background: 'white', borderRadius: '1.5rem', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', border: 'none', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
                                     <div style={{ fontSize: '4rem', marginBottom: '0.75rem' }}>🎨</div>
                                     <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#ec4899', marginBottom: '0.375rem' }}>Color & Learn</h3>
                                     <p style={{ color: '#4b5563', fontSize: '0.875rem' }}>Color beautiful pictures!</p>
@@ -835,9 +726,7 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js').catch(err => {
-                console.log('Service Worker registration failed:', err);
-            });
+            navigator.serviceWorker.register('service-worker.js').catch(err => console.log('SW failed:', err));
         }
     </script>
 </body>
