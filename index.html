@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kids Learning App</title>
+    <link rel="manifest" href="manifest.json">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body, #root { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+        .animate-bounce { animation: bounce 1s infinite; }
+        .shake { animation: shake 0.3s; }
+        button { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+        canvas { touch-action: none; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        const Menu = ({ size = 24 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>);
+        const X = ({ size = 24 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>);
+        const Home = ({ size = 24 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>);
+        const CheckCircle = ({ size = 24 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>);
+        const Award = ({ size = 24 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>);
+        const Palette = ({ size = 24 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>);
+        const Volume2 = ({ size = 24 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>);
+        const ChevronLeft = ({ size = 24 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>);
+        const ChevronRight = ({ size = 24 }) => (<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>);
+        
+        const alphabetData = [
+            { letter: 'A', word: 'Apple', image: '🍎', colors: ['#FF0000', '#8B4513', '#228B22'] },
+            { letter: 'B', word: 'Ball', image: '⚽', colors: ['#000000', '#FFFFFF'] },
+            { letter: 'C', word: 'Cat', image: '🐱', colors: ['#FFA500', '#FFFFFF', '#FFB6C1'] },
+            { letter: 'D', word: 'Dog', image: '🐕', colors: ['#8B4513', '#000000', '#FFFFFF'] },
+            { letter: 'E', word: 'Elephant', image: '🐘', colors: ['#808080', '#FFFFFF'] },
+            { letter: 'F', word: 'Fish', image: '🐠', colors: ['#4169E1', '#FFD700', '#FF6347'] },
+            { letter: 'G', word: 'Grapes', image: '🍇', colors: ['#800080', '#228B22'] },
+            { letter: 'H', word: 'Horse', image: '🐴', colors: ['#8B4513', '#000000'] },
+            { letter: 'I', word: 'Inkpot', image: '🖋️', colors: ['#000080', '#C0C0C0'] },
+            { letter: 'J', word: 'Jug', image: '🏺', colors: ['#D2691E', '#8B4513'] },
+            { letter: 'K', word: 'Kite', image: '🪁', colors: ['#FF0000', '#0000FF', '#FFD700'] },
+            { letter: 'L', word: 'Lion', image: '🦁', colors: ['#DAA520', '#8B4513'] },
+            { letter: 'M', word: 'Monkey', image: '🐵', colors: ['#8B4513', '#FFA500', '#FFE4B5'] },
+            { letter: 'N', word: 'Nest', image: '🪺', colors: ['#8B4513', '#D2691E'] },
+            { letter: 'O', word: 'Owl', image: '🦉', colors: ['#8B4513', '#FFFFFF', '#FFD700'] },
+            { letter: 'P', word: 'Parrot', image: '🦜', colors: ['#00FF00', '#FF0000', '#FFFF00'] },
+            { letter: 'Q', word: 'Queen', image: '👸', colors: ['#FFD700', '#FF69B4', '#FFF8DC'] },
+            { letter: 'R', word: 'Rat', image: '🐀', colors: ['#696969', '#FFFFFF'] },
+            { letter: 'S', word: 'Sun', image: '☀️', colors: ['#FFD700', '#FFA500'] },
+            { letter: 'T', word: 'Telephone', image: '☎️', colors: ['#FF0000', '#000000'] },
+            { letter: 'U', word: 'Umbrella', image: '☂️', colors: ['#FF0000', '#000000'] },
+            { letter: 'V', word: 'Van', image: '🚐', colors: ['#4169E1', '#FFFFFF', '#000000'] },
+            { letter: 'W', word: 'Watch', image: '⌚', colors: ['#000000', '#C0C0C0', '#FFD700'] },
+            { letter: 'X', word: 'Xmas', image: '🎄', colors: ['#228B22', '#FF0000', '#FFD700'] },
+            { letter: 'Y', word: 'Yak', image: '🦬', colors: ['#8B4513', '#000000'] },
+            { letter: 'Z', word: 'Zebra', image: '🦓', colors: ['#000000', '#FFFFFF'] }
+        ];
+
+        const speak = (text) => {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.rate = 0.8; u.pitch = 1.2;
+                window.speechSynthesis.speak(u);
+            }
+        };
+
+        // 5 sets: A-E (5), F-J (5), K-O (5), P-T (5), U-Z (6)
+        const sets = [
+            { name: 'A-E', start: 0, count: 5 },
+            { name: 'F-J', start: 5, count: 5 },
+            { name: 'K-O', start: 10, count: 5 },
+            { name: 'P-T', start: 15, count: 5 },
+            { name: 'U-Z', start: 20, count: 6 }
+        ];
+
+        const ColoringBook = ({ onBack }) => {
+            const canvasRef = useRef(null);
+            const [currentImage, setCurrentImage] = useState(null);
+            const [isDrawing, setIsDrawing] = useState(false);
+            const [selectedColor, setSelectedColor] = useState(null);
+            const [brushSize, setBrushSize] = useState(15);
+            const [isComplete, setIsComplete] = useState(false);
+            const [coloredPercentage, setColoredPercentage] = useState(0);
+            const [showColorMenu, setShowColorMenu] = useState(false);
+
+            useEffect(() => {
+                selectImage(alphabetData[0]);
+            }, []);
+
+            const selectImage = (item) => {
+                setCurrentImage(item);
+                setIsComplete(false);
+                setColoredPercentage(0);
+                setSelectedColor(item.colors[0]);
+                setTimeout(() => {
+                    const c = canvasRef.current;
+                    if (c) {
+                        const ctx = c.getContext('2d');
+                        ctx.fillStyle = '#FFF';
+                        ctx.fillRect(0, 0, c.width, c.height);
+                        ctx.font = 'bold 200px Arial';
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 8;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.strokeText(item.image, c.width / 2, c.height / 2);
+                    }
+                }, 100);
+            };
+
+            const draw = (e) => {
+                if (!isDrawing && e.type !== 'mousedown' && e.type !== 'touchstart') return;
+                const c = canvasRef.current, ctx = c.getContext('2d'), r = c.getBoundingClientRect();
+                let x, y;
+                if (e.type.includes('touch')) {
+                    e.preventDefault();
+                    x = e.touches[0].clientX - r.left;
+                    y = e.touches[0].clientY - r.top;
+                } else {
+                    x = e.clientX - r.left;
+                    y = e.clientY - r.top;
+                }
+                ctx.fillStyle = selectedColor;
+                ctx.beginPath();
+                ctx.arc(x, y, brushSize, 0, Math.PI * 2);
+                ctx.fill();
+            };
+
+            const check = () => {
+                const c = canvasRef.current, ctx = c.getContext('2d'), imgData = ctx.getImageData(0, 0, c.width, c.height), px = imgData.data;
+                let col = 0, tot = 0;
+                for (let i = 0; i < px.length; i += 4) {
+                    const r = px[i], g = px[i + 1], b = px[i + 2];
+                    if (r < 250 || g < 250 || b < 250) {
+                        tot++;
+                        if (!(r < 10 && g < 10 && b < 10)) col++;
+                    }
+                }
+                const pct = tot > 0 ? (col / tot) * 100 : 0;
+                setColoredPercentage(Math.round(pct));
+                if (pct > 60 && !isComplete) {
+                    setIsComplete(true);
+                    setTimeout(() => speak(`${currentImage.letter} for ${currentImage.word}`), 500);
+                }
+            };
+
+            return (
+                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(to bottom right, #e9d5ff, #fce7f3)', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                        <button onClick={onBack} style={{ padding: '0.5rem', background: 'transparent', border: 'none' }}><Home size={24} style={{ color: '#9333ea' }} /></button>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#9333ea' }}>🎨 Coloring</h2>
+                        <button onClick={() => setShowColorMenu(!showColorMenu)} style={{ padding: '0.5rem', background: 'transparent', border: 'none' }}>
+                            {showColorMenu ? <X size={24} style={{ color: '#9333ea' }} /> : <Palette size={24} style={{ color: '#9333ea' }} />}
+                        </button>
+                    </div>
+
+                    {showColorMenu && (
+                        <div style={{ position: 'absolute', right: 0, top: '4.5rem', background: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.25)', borderRadius: '1rem 0 0 1rem', padding: '1rem', zIndex: 50, maxHeight: '70vh', overflow: 'auto' }}>
+                            <h3 style={{ fontWeight: 'bold', marginBottom: '1rem', color: '#9333ea' }}>Select Letter</h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {alphabetData.map((item) => (
+                                    <button key={item.letter} onClick={() => { selectImage(item); setShowColorMenu(false); }} style={{ padding: '0.75rem', background: currentImage?.letter === item.letter ? '#9333ea' : 'white', color: currentImage?.letter === item.letter ? 'white' : '#9333ea', border: '2px solid #9333ea', borderRadius: '0.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <span style={{ fontSize: '1.5rem' }}>{item.image}</span>
+                                        <span>{item.letter} - {item.word}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', overflow: 'auto' }}>
+                        <div style={{ background: 'white', borderRadius: '1rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', padding: '1rem', display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: '1rem' }}>
+                            <div style={{ position: 'relative' }}>
+                                <canvas ref={canvasRef} width={Math.min(400, window.innerWidth - 40)} height={Math.min(400, window.innerWidth - 40)} style={{ border: '4px solid #c084fc', borderRadius: '0.75rem', cursor: 'crosshair', background: 'white' }} onMouseDown={(e) => { setIsDrawing(true); draw(e); }} onMouseMove={draw} onMouseUp={() => { setIsDrawing(false); check(); }} onMouseLeave={() => { setIsDrawing(false); check(); }} onTouchStart={(e) => { setIsDrawing(true); draw(e); }} onTouchMove={draw} onTouchEnd={() => { setIsDrawing(false); check(); }} />
+                                {isComplete && (
+                                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', textAlign: 'center' }} className="animate-bounce">
+                                            <Award size={48} style={{ color: '#eab308', margin: '0 auto 0.5rem' }} />
+                                            <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#9333ea' }}>{currentImage.letter} for {currentImage.word}!</h3>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', minWidth: '200px' }}>
+                                <div style={{ background: '#faf5ff', padding: '0.75rem', borderRadius: '0.5rem' }}>
+                                    <h3 style={{ fontWeight: 'bold', fontSize: '0.875rem', marginBottom: '0.5rem', color: '#9333ea' }}>Image Colors</h3>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+                                        {currentImage?.colors.map(c => (
+                                            <button key={c} onClick={() => setSelectedColor(c)} style={{ width: '3rem', height: '3rem', borderRadius: '0.5rem', border: selectedColor === c ? '3px solid #9333ea' : '2px solid #d1d5db', background: c, transform: selectedColor === c ? 'scale(1.1)' : 'scale(1)', transition: 'transform 0.2s' }} />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div style={{ background: '#faf5ff', padding: '0.75rem', borderRadius: '0.5rem' }}>
+                                    <h3 style={{ fontWeight: 'bold', fontSize: '0.875rem', color: '#9333ea' }}>Brush Size</h3>
+                                    <input type="range" min="5" max="30" value={brushSize} onChange={(e) => setBrushSize(Number(e.target.value))} style={{ width: '100%' }} />
+                                    <p style={{ textAlign: 'center', color: '#4b5563', fontSize: '0.875rem' }}>{brushSize}px</p>
+                                </div>
+                                <div style={{ background: '#faf5ff', padding: '0.75rem', borderRadius: '0.5rem' }}>
+                                    <h3 style={{ fontWeight: 'bold', fontSize: '0.875rem', color: '#9333ea' }}>Progress</h3>
+                                    <div style={{ width: '100%', background: '#e5e7eb', borderRadius: '9999px', height: '1.25rem' }}>
+                                        <div style={{ background: '#22c55e', height: '1.25rem', borderRadius: '9999px', width: `${coloredPercentage}%` }} />
+                                    </div>
+                                    <p style={{ textAlign: 'center', color: '#4b5563', fontSize: '0.875rem' }}>{coloredPercentage}%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const MatchingGame = ({ onBack }) => {
+            const [currentSet, setCurrentSet] = useState(0);
+            const [leftItems, setLeftItems] = useState([]);
+            const [rightItems, setRightItems] = useState([]);
+            const [matches, setMatches] = useState({});
+            const [correctMatches, setCorrectMatches] = useState(0);
+            const [showCelebration, setShowCelebration] = useState(false);
+            const [selectedLetter, setSelectedLetter] = useState(null);
+            const [shakeItem, setShakeItem] = useState(null);
+
+            useEffect(() => loadSet(currentSet), [currentSet]);
+
+            const loadSet = (setIndex) => {
+                const set = sets[setIndex];
+                const data = alphabetData.slice(set.start, set.start + set.count);
+                setLeftItems(data);
+                
+                let shuffled;
+                let attempts = 0;
+                do {
+                    shuffled = [...data].sort(() => Math.random() - 0.5);
+                    attempts++;
+                } while (shuffled.some((item, i) => item.letter === data[i].letter) && attempts < 50);
+                
+                setRightItems(shuffled);
+                setMatches({});
+                setCorrectMatches(0);
+                setShowCelebration(false);
+                setSelectedLetter(null);
+            };
+
+            const handleLetterClick = (letter) => {
+                if (matches[letter]) return;
+                setSelectedLetter(letter);
+            };
+
+            const handleImageClick = (imageLetter) => {
+                if (!selectedLetter) return;
+                if (Object.values(matches).includes(imageLetter)) return;
+                
+                if (selectedLetter === imageLetter) {
+                    const newMatches = { ...matches, [selectedLetter]: imageLetter };
+                    setMatches(newMatches);
+                    const item = alphabetData.find(i => i.letter === imageLetter);
+                    speak(`${imageLetter} for ${item.word}`);
+                    setSelectedLetter(null);
+                    
+                    const newCorrect = correctMatches + 1;
+                    setCorrectMatches(newCorrect);
+                    
+                    if (newCorrect === sets[currentSet].count) {
+                        setShowCelebration(true);
+                        setTimeout(() => {
+                            if (currentSet < 4) {
+                                setCurrentSet(currentSet + 1);
+                            } else {
+                                speak("Congratulations! You completed all sets!");
+                            }
+                        }, 2000);
+                    }
+                } else {
+                    setShakeItem(imageLetter);
+                    setTimeout(() => {
+                        setShakeItem(null);
+                        setSelectedLetter(null);
+                    }, 300);
+                }
+            };
+
+            const goNext = () => {
+                if (currentSet < 4) setCurrentSet(currentSet + 1);
+            };
+
+            const goPrev = () => {
+                if (currentSet > 0) setCurrentSet(currentSet - 1);
+            };
+
+            return (
+                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(to bottom right, #dbeafe, #d1fae5)', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                        <button onClick={onBack} style={{ padding: '0.5rem', background: 'transparent', border: 'none' }}><Home size={24} style={{ color: '#2563eb' }} /></button>
+                        <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#2563eb' }}>Match Letters! ({sets[currentSet].name})</h2>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <CheckCircle size={20} style={{ color: '#16a34a' }} />
+                            <span style={{ fontWeight: 'bold' }}>{correctMatches}/{sets[currentSet].count}</span>
+                        </div>
+                    </div>
+                    
+                    <div style={{ padding: '0.5rem', background: '#f0f9ff', borderBottom: '2px solid #bae6fd', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
+                            {sets.map((set, i) => (
+                                <button key={i} onClick={() => setCurrentSet(i)} style={{ padding: '0.5rem 1rem', background: currentSet === i ? '#2563eb' : 'white', color: currentSet === i ? 'white' : '#2563eb', border: '2px solid #2563eb', borderRadius: '0.5rem', fontWeight: 'bold', fontSize: '0.875rem' }}>{set.name}</button>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', overflow: 'auto', position: 'relative' }}>
+                        <div style={{ display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: window.innerWidth < window.innerHeight ? '3rem' : '6rem', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {leftItems.map(item => (
+                                    <button key={item.letter} onClick={() => handleLetterClick(item.letter)} disabled={matches[item.letter]} style={{ width: '6rem', height: '5rem', fontSize: '2rem', fontWeight: 'bold', borderRadius: '0.75rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', background: matches[item.letter] ? '#86efac' : (selectedLetter === item.letter ? '#60a5fa' : 'white'), color: (matches[item.letter] || selectedLetter === item.letter) ? 'white' : '#2563eb', border: matches[item.letter] ? '3px solid #22c55e' : (selectedLetter === item.letter ? '3px solid #2563eb' : '2px solid #2563eb'), cursor: matches[item.letter] ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>{item.letter}</button>
+                                ))}
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {rightItems.map(item => {
+                                    const matched = Object.values(matches).includes(item.letter);
+                                    return (
+                                        <button key={item.letter} onClick={() => handleImageClick(item.letter)} disabled={matched} className={shakeItem === item.letter ? 'shake' : ''} style={{ width: '8rem', height: '5rem', borderRadius: '0.75rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: matched ? '#86efac' : 'white', border: matched ? '3px solid #22c55e' : (shakeItem === item.letter ? '3px solid #ef4444' : '2px solid #cbd5e1'), cursor: matched ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
+                                            <span style={{ fontSize: '2rem' }}>{item.image}</span>
+                                            <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#374151' }}>{item.word}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'rgba(255,255,255,0.7)' }}>
+                        <button onClick={goPrev} disabled={currentSet === 0} style={{ padding: '0.75rem 1.5rem', background: currentSet === 0 ? '#d1d5db' : '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: currentSet === 0 ? 'not-allowed' : 'pointer' }}>
+                            <ChevronLeft size={20} /> Back
+                        </button>
+                        <button onClick={goNext} disabled={currentSet === 4} style={{ padding: '0.75rem 1.5rem', background: currentSet === 4 ? '#d1d5db' : '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: currentSet === 4 ? 'not-allowed' : 'pointer' }}>
+                            Next <ChevronRight size={20} />
+                        </button>
+                    </div>
+
+                    {showCelebration && (
+                        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
+                            <div style={{ background: 'white', padding: '2rem', borderRadius: '1.5rem', textAlign: 'center' }} className="animate-bounce">
+                                <Award size={64} style={{ color: '#eab308', margin: '0 auto 1rem' }} />
+                                <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#16a34a' }}>Awesome! 🎉</h2>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const AlphabetGame = () => {
+            const [menuOpen, setMenuOpen] = useState(false);
+            const [currentScreen, setCurrentScreen] = useState('home');
+            
+            if (currentScreen === 'matching') return <MatchingGame onBack={() => setCurrentScreen('home')} />;
+            if (currentScreen === 'coloring') return <ColoringBook onBack={() => setCurrentScreen('home')} />;
+            
+            return (
+                <div style={{ width: '100%', height: '100vh', background: 'linear-gradient(to bottom right, #fef3c7, #fce7f3, #dbeafe)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                        <button onClick={() => setMenuOpen(!menuOpen)} style={{ padding: '0.5rem', background: 'transparent', border: 'none' }}>
+                            {menuOpen ? <X size={28} /> : <Menu size={28} />}
+                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%239333ea'/%3E%3Ctext x='20' y='28' font-size='20' text-anchor='middle' fill='white' font-weight='bold'%3EKL%3C/text%3E%3C/svg%3E" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid #9333ea' }} />
+                            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', background: 'linear-gradient(to right, #9333ea, #db2777)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Kids Learning App</h1>
+                        </div>
+                        <div style={{ width: '2.5rem' }} />
+                    </div>
+                    
+                    {menuOpen && (
+                        <div style={{ position: 'absolute', left: 0, top: '4.5rem', background: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.25)', borderRadius: '0 1rem 1rem 0', padding: '1.25rem', zIndex: 50, width: '16rem' }}>
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Choose Activity</h2>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <div style={{ border: '2px solid #e9d5ff', borderRadius: '0.75rem', padding: '0.75rem' }}>
+                                    <h3 style={{ fontWeight: 'bold', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.375rem', color: '#9333ea' }}>
+                                        <Volume2 size={18} /> Match
+                                    </h3>
+                                    <button onClick={() => { setCurrentScreen('matching'); setMenuOpen(false); }} style={{ width: '100%', padding: '0.625rem', background: '#3b82f6', color: 'white', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold' }}>🔤 Start</button>
+                                </div>
+                                <div style={{ border: '2px solid #fbcfe8', borderRadius: '0.75rem', padding: '0.75rem' }}>
+                                    <h3 style={{ fontWeight: 'bold', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.375rem', color: '#ec4899' }}>
+                                        <Palette size={18} /> Color
+                                    </h3>
+                                    <button onClick={() => { setCurrentScreen('coloring'); setMenuOpen(false); }} style={{ width: '100%', padding: '0.625rem', background: '#ec4899', color: 'white', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold' }}>🎨 Start</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', overflow: 'auto' }}>
+                        <div style={{ textAlign: 'center' }}>
+                            <h2 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }} className="animate-bounce">Welcome! 👋</h2>
+                            <p style={{ fontSize: '1.25rem', color: '#374151', marginBottom: '2rem' }}>Click menu to start!</p>
+                            <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth < 600 ? '1fr' : 'repeat(2, 1fr)', gap: '1.5rem' }}>
+                                <button onClick={() => { setCurrentScreen('matching'); setMenuOpen(false); }} style={{ background: 'white', borderRadius: '1.5rem', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', border: 'none' }}>
+                                    <div style={{ fontSize: '4rem' }}>🔤</div>
+                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#9333ea' }}>Match</h3>
+                                </button>
+                                <button onClick={() => { setCurrentScreen('coloring'); setMenuOpen(false); }} style={{ background: 'white', borderRadius: '1.5rem', padding: '1.5rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', border: 'none' }}>
+                                    <div style={{ fontSize: '4rem' }}>🎨</div>
+                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#ec4899' }}>Color</h3>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<AlphabetGame />);
+    </script>
+    <script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('service-worker.js').catch(() => {}); }</script>
+</body>
+</html>
