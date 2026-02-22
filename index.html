@@ -12,7 +12,9 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body, #root { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
         .animate-bounce { animation: bounce 1s infinite; }
+        .shake { animation: shake 0.3s; }
         button { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
         canvas { touch-action: none; }
         ::-webkit-scrollbar { width: 8px; }
@@ -141,7 +143,7 @@
             );
         };
 
-        // MATCHING GAME - Position stored IN STATE on press!
+        // CLICK-BASED MATCHING GAME - No drag & drop!
         const MatchingGame = ({ onBack }) => {
             const [currentSet, setCurrentSet] = useState(0);
             const [leftItems, setLeftItems] = useState([]);
@@ -149,67 +151,42 @@
             const [matches, setMatches] = useState({});
             const [correctMatches, setCorrectMatches] = useState(0);
             const [showCelebration, setShowCelebration] = useState(false);
-            
-            // Store EVERYTHING about the drag in one state object
-            const [drag, setDrag] = useState(null); // { letter, startX, startY, currX, currY }
-            
-            const rightRefs = useRef({});
+            const [selectedLetter, setSelectedLetter] = useState(null);
+            const [shakeItem, setShakeItem] = useState(null);
 
             useEffect(() => loadNextSet(), [currentSet]);
 
             const loadNextSet = () => {
                 const idx = currentSet * 5, data = alphabetData.slice(idx, idx + 5);
                 setLeftItems(data);
-                setRightItems([...data].sort(() => Math.random() - 0.5));
-                setMatches({}); setCorrectMatches(0); setShowCelebration(false); setDrag(null);
+                
+                // ENSURE right side is DIFFERENT order - shuffle until different
+                let shuffled;
+                do {
+                    shuffled = [...data].sort(() => Math.random() - 0.5);
+                } while (shuffled.every((item, i) => item.letter === data[i].letter));
+                
+                setRightItems(shuffled);
+                setMatches({}); setCorrectMatches(0); setShowCelebration(false); setSelectedLetter(null);
             };
 
-            const handleStart = (e, letter) => {
+            const handleLetterClick = (letter) => {
                 if (matches[letter]) return;
-                e.preventDefault();
-                
-                // Get button position RIGHT NOW from the event target!
-                const btnRect = e.currentTarget.getBoundingClientRect();
-                const sx = btnRect.left + btnRect.width / 2;
-                const sy = btnRect.top + btnRect.height / 2;
-                
-                const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-                const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-                
-                // Store EVERYTHING including start position!
-                setDrag({ letter, startX: sx, startY: sy, currX: cx, currY: cy });
+                setSelectedLetter(letter);
             };
 
-            const handleMove = (e) => {
-                if (!drag) return;
-                e.preventDefault();
-                const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-                const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-                setDrag(prev => ({ ...prev, currX: cx, currY: cy }));
-            };
-
-            const handleEnd = (e) => {
-                if (!drag) return;
-                const cx = e.type.includes('touch') ? e.changedTouches[0].clientX : e.clientX;
-                const cy = e.type.includes('touch') ? e.changedTouches[0].clientY : e.clientY;
+            const handleImageClick = (imageLetter) => {
+                if (!selectedLetter) return;
+                if (Object.values(matches).includes(imageLetter)) return;
                 
-                let target = null;
-                for (const item of rightItems) {
-                    const ref = rightRefs.current[item.letter];
-                    if (ref) {
-                        const r = ref.getBoundingClientRect();
-                        if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
-                            target = item.letter;
-                            break;
-                        }
-                    }
-                }
-                
-                if (target && drag.letter === target) {
-                    const newMatches = { ...matches, [drag.letter]: target };
+                if (selectedLetter === imageLetter) {
+                    // CORRECT!
+                    const newMatches = { ...matches, [selectedLetter]: imageLetter };
                     setMatches(newMatches);
-                    const item = alphabetData.find(i => i.letter === target);
-                    speak(`${target} for ${item.word}`);
+                    const item = alphabetData.find(i => i.letter === imageLetter);
+                    speak(`${imageLetter} for ${item.word}`);
+                    setSelectedLetter(null);
+                    
                     const newCorrect = correctMatches + 1;
                     setCorrectMatches(newCorrect);
                     
@@ -220,12 +197,18 @@
                             else { speak("Congratulations!"); setCurrentSet(0); }
                         }, 2000);
                     }
+                } else {
+                    // WRONG - shake and deselect
+                    setShakeItem(imageLetter);
+                    setTimeout(() => {
+                        setShakeItem(null);
+                        setSelectedLetter(null);
+                    }, 300);
                 }
-                setDrag(null);
             };
 
             return (
-                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(to bottom right, #dbeafe, #d1fae5)', display: 'flex', flexDirection: 'column' }} onMouseMove={handleMove} onMouseUp={handleEnd} onTouchMove={handleMove} onTouchEnd={handleEnd}>
+                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(to bottom right, #dbeafe, #d1fae5)', display: 'flex', flexDirection: 'column' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
                         <button onClick={onBack} style={{ padding: '0.5rem', background: 'transparent', border: 'none' }}><Home size={24} style={{ color: '#2563eb' }} /></button>
                         <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#2563eb' }}>Match Letters! ({currentSet + 1}/6)</h2>
@@ -236,22 +219,74 @@
                             {[0, 1, 2, 3, 4, 5].map(n => (<button key={n} onClick={() => setCurrentSet(n)} style={{ padding: '0.5rem 1rem', background: currentSet === n ? '#2563eb' : 'white', color: currentSet === n ? 'white' : '#2563eb', border: '2px solid #2563eb', borderRadius: '0.5rem', fontWeight: 'bold', fontSize: '0.875rem' }}>Set {n + 1}</button>))}
                         </div>
                     </div>
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', position: 'relative', overflow: 'auto' }}>
-                        <div style={{ display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: window.innerWidth < window.innerHeight ? '4rem' : '7rem', alignItems: 'center' }}>
+                    
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', overflow: 'auto' }}>
+                        <div style={{ display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: window.innerWidth < window.innerHeight ? '3rem' : '6rem', alignItems: 'center' }}>
+                            
+                            {/* Left - Letters */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {leftItems.map(item => (
-                                    <button key={item.letter} onMouseDown={(e) => handleStart(e, item.letter)} onTouchStart={(e) => handleStart(e, item.letter)} disabled={matches[item.letter]} style={{ width: '6rem', height: '5rem', fontSize: '2rem', fontWeight: 'bold', borderRadius: '0.75rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', background: matches[item.letter] ? '#86efac' : (drag?.letter === item.letter ? '#fbbf24' : 'white'), color: matches[item.letter] ? '#166534' : (drag?.letter === item.letter ? 'white' : '#2563eb'), border: matches[item.letter] ? '3px solid #22c55e' : (drag?.letter === item.letter ? '3px solid #fbbf24' : '2px solid #2563eb'), cursor: matches[item.letter] ? 'not-allowed' : 'grab', touchAction: 'none' }}>{item.letter}</button>
+                                    <button 
+                                        key={item.letter} 
+                                        onClick={() => handleLetterClick(item.letter)}
+                                        disabled={matches[item.letter]}
+                                        style={{ 
+                                            width: '6rem', 
+                                            height: '5rem', 
+                                            fontSize: '2rem', 
+                                            fontWeight: 'bold', 
+                                            borderRadius: '0.75rem', 
+                                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
+                                            background: matches[item.letter] ? '#86efac' : (selectedLetter === item.letter ? '#60a5fa' : 'white'),
+                                            color: (matches[item.letter] || selectedLetter === item.letter) ? 'white' : '#2563eb',
+                                            border: matches[item.letter] ? '3px solid #22c55e' : (selectedLetter === item.letter ? '3px solid #2563eb' : '2px solid #2563eb'),
+                                            cursor: matches[item.letter] ? 'not-allowed' : 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        {item.letter}
+                                    </button>
                                 ))}
                             </div>
+
+                            {/* Right - Images (JUMBLED - never aligned!) */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {rightItems.map(item => {
                                     const matched = Object.values(matches).includes(item.letter);
-                                    return (<div key={item.letter} ref={el => rightRefs.current[item.letter] = el} style={{ width: '8rem', height: '5rem', borderRadius: '0.75rem', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: matched ? '#86efac' : 'white', border: matched ? '3px solid #22c55e' : '2px solid #cbd5e1', pointerEvents: 'none' }}><span style={{ fontSize: '2rem' }}>{item.image}</span><span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#374151' }}>{item.word}</span></div>);
+                                    return (
+                                        <button
+                                            key={item.letter}
+                                            onClick={() => handleImageClick(item.letter)}
+                                            disabled={matched}
+                                            className={shakeItem === item.letter ? 'shake' : ''}
+                                            style={{ 
+                                                width: '8rem', 
+                                                height: '5rem', 
+                                                borderRadius: '0.75rem', 
+                                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                background: matched ? '#86efac' : 'white',
+                                                border: matched ? '3px solid #22c55e' : (shakeItem === item.letter ? '3px solid #ef4444' : '2px solid #cbd5e1'),
+                                                cursor: matched ? 'not-allowed' : 'pointer',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '2rem' }}>{item.image}</span>
+                                            <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#374151' }}>{item.word}</span>
+                                        </button>
+                                    );
                                 })}
                             </div>
                         </div>
-                        {drag && (<svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1000 }}><line x1={drag.startX} y1={drag.startY} x2={drag.currX} y2={drag.currY} stroke="#fbbf24" strokeWidth="6" strokeDasharray="10,5" strokeLinecap="round"/><circle cx={drag.currX} cy={drag.currY} r="12" fill="#fbbf24"/></svg>)}
                     </div>
+
+                    <div style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.7)', textAlign: 'center', color: '#4b5563' }}>
+                        <p style={{ fontSize: '0.875rem' }}>👆 Click a letter, then click the matching image!</p>
+                    </div>
+
                     {showCelebration && (<div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}><div style={{ background: 'white', padding: '2rem', borderRadius: '1.5rem', textAlign: 'center' }} className="animate-bounce"><Award size={64} style={{ color: '#eab308', margin: '0 auto 1rem' }} /><h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#16a34a' }}>Awesome! 🎉</h2></div></div>)}
                 </div>
             );
