@@ -20,6 +20,34 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .video-background iframe {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100vw;
+            height: 56.25vw;
+            min-height: 100vh;
+            min-width: 177.77vh;
+            transform: translate(-50%, -50%);
+        }
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -66,6 +94,19 @@
             { letter: 'Z', word: 'Zebra', image: '🦓', colors: ['#000000', '#FFFFFF'] }
         ];
 
+        const successMessages = [
+            "Wow!! You are awesome! 🌟",
+            "Good work! 👏",
+            "You are a master! 🏆"
+        ];
+
+        const videoBackgrounds = [
+            "https://www.youtube.com/embed/moSFlvxnbgk?autoplay=1&mute=1&loop=1&playlist=moSFlvxnbgk&controls=0&showinfo=0&rel=0&modestbranding=1", // Frozen
+            "https://www.youtube.com/embed/K5i7M63KU5Y?autoplay=1&mute=1&loop=1&playlist=K5i7M63KU5Y&controls=0&showinfo=0&rel=0&modestbranding=1", // Doraemon
+            "https://www.youtube.com/embed/VL0TJjdw-9k?autoplay=1&mute=1&loop=1&playlist=VL0TJjdw-9k&controls=0&showinfo=0&rel=0&modestbranding=1", // Cocomelon
+            "https://www.youtube.com/embed/OBkXLXO9kKI?autoplay=1&mute=1&loop=1&playlist=OBkXLXO9kKI&controls=0&showinfo=0&rel=0&modestbranding=1"  // Little Krishna
+        ];
+
         const speak = (text) => {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
@@ -75,7 +116,6 @@
             }
         };
 
-        // 5 sets: A-E (5), F-J (5), K-O (5), P-T (5), U-Z (6)
         const sets = [
             { name: 'A-E', start: 0, count: 5 },
             { name: 'F-J', start: 5, count: 5 },
@@ -93,6 +133,7 @@
             const [isComplete, setIsComplete] = useState(false);
             const [coloredPercentage, setColoredPercentage] = useState(0);
             const [showColorMenu, setShowColorMenu] = useState(false);
+            const [videoUrl] = useState(videoBackgrounds[Math.floor(Math.random() * videoBackgrounds.length)]);
 
             useEffect(() => {
                 selectImage(alphabetData[0]);
@@ -156,8 +197,13 @@
             };
 
             return (
-                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(to bottom right, #e9d5ff, #fce7f3)', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                    <div className="video-background">
+                        <iframe src={videoUrl} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                        <div className="video-overlay"></div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(255, 255, 255, 0.95)', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', position: 'relative', zIndex: 10 }}>
                         <button onClick={onBack} style={{ padding: '0.5rem', background: 'transparent', border: 'none' }}><Home size={24} style={{ color: '#9333ea' }} /></button>
                         <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#9333ea' }}>🎨 Coloring</h2>
                         <button onClick={() => setShowColorMenu(!showColorMenu)} style={{ padding: '0.5rem', background: 'transparent', border: 'none' }}>
@@ -179,8 +225,8 @@
                         </div>
                     )}
 
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', overflow: 'auto' }}>
-                        <div style={{ background: 'white', borderRadius: '1rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', padding: '1rem', display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: '1rem' }}>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem', overflow: 'auto', position: 'relative', zIndex: 5 }}>
+                        <div style={{ background: 'rgba(255, 255, 255, 0.95)', borderRadius: '1rem', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', padding: '1rem', display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: '1rem' }}>
                             <div style={{ position: 'relative' }}>
                                 <canvas ref={canvasRef} width={Math.min(400, window.innerWidth - 40)} height={Math.min(400, window.innerWidth - 40)} style={{ border: '4px solid #c084fc', borderRadius: '0.75rem', cursor: 'crosshair', background: 'white' }} onMouseDown={(e) => { setIsDrawing(true); draw(e); }} onMouseMove={draw} onMouseUp={() => { setIsDrawing(false); check(); }} onMouseLeave={() => { setIsDrawing(false); check(); }} onTouchStart={(e) => { setIsDrawing(true); draw(e); }} onTouchMove={draw} onTouchEnd={() => { setIsDrawing(false); check(); }} />
                                 {isComplete && (
@@ -227,8 +273,10 @@
             const [matches, setMatches] = useState({});
             const [correctMatches, setCorrectMatches] = useState(0);
             const [showCelebration, setShowCelebration] = useState(false);
+            const [celebrationMessage, setCelebrationMessage] = useState('');
             const [selectedLetter, setSelectedLetter] = useState(null);
             const [shakeItem, setShakeItem] = useState(null);
+            const [videoUrl] = useState(videoBackgrounds[Math.floor(Math.random() * videoBackgrounds.length)]);
 
             useEffect(() => loadSet(currentSet), [currentSet]);
 
@@ -271,14 +319,9 @@
                     setCorrectMatches(newCorrect);
                     
                     if (newCorrect === sets[currentSet].count) {
+                        const randomMessage = successMessages[Math.floor(Math.random() * successMessages.length)];
+                        setCelebrationMessage(randomMessage);
                         setShowCelebration(true);
-                        setTimeout(() => {
-                            if (currentSet < 4) {
-                                setCurrentSet(currentSet + 1);
-                            } else {
-                                speak("Congratulations! You completed all sets!");
-                            }
-                        }, 2000);
                     }
                 } else {
                     setShakeItem(imageLetter);
@@ -286,6 +329,15 @@
                         setShakeItem(null);
                         setSelectedLetter(null);
                     }, 300);
+                }
+            };
+
+            const closeCelebration = () => {
+                setShowCelebration(false);
+                if (currentSet < 4) {
+                    setTimeout(() => setCurrentSet(currentSet + 1), 300);
+                } else {
+                    speak("Congratulations! You completed all sets!");
                 }
             };
 
@@ -298,8 +350,13 @@
             };
 
             return (
-                <div style={{ width: '100%', height: '100%', background: 'linear-gradient(to bottom right, #dbeafe, #d1fae5)', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                    <div className="video-background">
+                        <iframe src={videoUrl} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                        <div className="video-overlay"></div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(255, 255, 255, 0.95)', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', position: 'relative', zIndex: 10 }}>
                         <button onClick={onBack} style={{ padding: '0.5rem', background: 'transparent', border: 'none' }}><Home size={24} style={{ color: '#2563eb' }} /></button>
                         <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#2563eb' }}>Match Letters! ({sets[currentSet].name})</h2>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -308,7 +365,7 @@
                         </div>
                     </div>
                     
-                    <div style={{ padding: '0.5rem', background: '#f0f9ff', borderBottom: '2px solid #bae6fd', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+                    <div style={{ padding: '0.5rem', background: 'rgba(240, 249, 255, 0.95)', borderBottom: '2px solid #bae6fd', overflowX: 'auto', whiteSpace: 'nowrap', position: 'relative', zIndex: 10 }}>
                         <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
                             {sets.map((set, i) => (
                                 <button key={i} onClick={() => setCurrentSet(i)} style={{ padding: '0.5rem 1rem', background: currentSet === i ? '#2563eb' : 'white', color: currentSet === i ? 'white' : '#2563eb', border: '2px solid #2563eb', borderRadius: '0.5rem', fontWeight: 'bold', fontSize: '0.875rem' }}>{set.name}</button>
@@ -316,7 +373,7 @@
                         </div>
                     </div>
                     
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', overflow: 'auto', position: 'relative' }}>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', overflow: 'auto', position: 'relative', zIndex: 5 }}>
                         <div style={{ display: 'flex', flexDirection: window.innerWidth < window.innerHeight ? 'column' : 'row', gap: window.innerWidth < window.innerHeight ? '3rem' : '6rem', alignItems: 'center' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                 {leftItems.map(item => (
@@ -337,7 +394,7 @@
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'rgba(255,255,255,0.7)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'rgba(255, 255, 255, 0.95)', position: 'relative', zIndex: 10 }}>
                         <button onClick={goPrev} disabled={currentSet === 0} style={{ padding: '0.75rem 1.5rem', background: currentSet === 0 ? '#d1d5db' : '#2563eb', color: 'white', border: 'none', borderRadius: '0.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: currentSet === 0 ? 'not-allowed' : 'pointer' }}>
                             <ChevronLeft size={20} /> Back
                         </button>
@@ -347,10 +404,14 @@
                     </div>
 
                     {showCelebration && (
-                        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
-                            <div style={{ background: 'white', padding: '2rem', borderRadius: '1.5rem', textAlign: 'center' }} className="animate-bounce">
+                        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+                            <div style={{ background: 'white', padding: '2rem', borderRadius: '1.5rem', textAlign: 'center', position: 'relative', maxWidth: '90%' }} className="animate-bounce">
+                                <button onClick={closeCelebration} style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                                    <X size={28} style={{ color: '#9333ea' }} />
+                                </button>
                                 <Award size={64} style={{ color: '#eab308', margin: '0 auto 1rem' }} />
-                                <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#16a34a' }}>Awesome! 🎉</h2>
+                                <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#16a34a', marginBottom: '0.5rem' }}>{celebrationMessage}</h2>
+                                <p style={{ fontSize: '1rem', color: '#4b5563' }}>Keep going! 🎉</p>
                             </div>
                         </div>
                     )}
